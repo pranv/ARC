@@ -4,8 +4,6 @@ import numpy as np
 
 from scipy.ndimage import imread
 
-import cPickle
-
 
 os.system('wget https://github.com/brendenlake/omniglot/archive/master.zip')
 os.system('unzip -a master.zip')
