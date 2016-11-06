@@ -18,6 +18,6 @@ for expt_num in range(EXPT_START_NUM, EXPT_START_NUM + NUM_EXPTS):
 	arg_string += " -f " + str(choice([0.25, 0.5, 1.0, 2.0])) 		# fg-bias
 	arg_string += " -b " + str(choice([32, 64])) 					# batch-size
 	arg_string += " -p " + str(choice([0.0, 0.1, 0.3, 0.5])) 		# dropout
-	arg_string += " -m " + str(10000) 								# max-iterations
+	arg_string += " -m " + str(5000) 								# max-iterations
 
 	os.system(arg_string)
