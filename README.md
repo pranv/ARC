@@ -4,7 +4,7 @@ Code repository for reproducing the results in the paper - [Attentive Recurrent 
 ## Abstract
 Models that have the capacity of recognizing the subtle similarities or differences among a set of samples are crucial in many areas of Machine Learning. We present a novel neural model built with attention and recurrence that learns to compare the characteristics of set of objects. Our basic model outperforms strong baselines based on Deep ConvNets in many challenging visual tasks. We tested the generalization capacity of this model by using it for one shot classification on the Omniglot dataset, where it showed comparable results with other methods.
 
-## Instructions
+## Usage
 1. Install dependencies
     * Scipy and Numpy
     * [Theano](http://deeplearning.net/software/theano/) `pip install --upgrade https://github.com/Theano/Theano/archive/master.zip`
