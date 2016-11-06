@@ -100,7 +100,7 @@ class Omniglot(object):
 			char_idx = starts[alphbt_idx] + char_offset	# calculate char index
 			X[i+batch_size/2], X[i+3*batch_size/2] = data[char_idx, choice(20, 2, replace=False)] # choose 2 drawers
 
-		y = np.zeros(batch_size, dtype='int32')
+		y = np.zeros((batch_size, 1), dtype='int32')
 		y[:batch_size/2] = 0
 		y[batch_size/2:] = 1
 
