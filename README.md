@@ -15,5 +15,5 @@ Models that have the capacity of recognizing the subtle similarities or differen
   * To prepare LFW dataset: `cd data/; python setup_lfw.py`
 
 3. Train the networks. The following code segments train the models with the default hyper-parameters. These can be changed by passing command line arguments. Refer to help for this via `python <script.py> -h`
-  * To train Binary ARC model from the paper on Omniglot Verfication task: `python wrn_omniglot_verif.py`.
-  * To train the 50 layer Wide ResNet baseline on Omniglot Verfication task: `python arc_omniglot_verif.py`
+  * To train Binary ARC model from the paper on Omniglot Verfication task: `python arc_omniglot_verif.py`
+  * To train the 50 layer Wide ResNet baseline on Omniglot Verfication task: `python wrn_omniglot_verif.py`
