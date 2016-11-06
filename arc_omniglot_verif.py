@@ -1,6 +1,6 @@
 import argparse
 parser = argparse.ArgumentParser(description="Command Line Interface for Setting HyperParameter Values")
-parser.add_argument("-n", "--expt-name", type=str, default="testing", help="experiment name for logging purposes")
+parser.add_argument("-n", "--expt-name", type=str, default="a_o_test", help="experiment name for logging purposes")
 parser.add_argument("-l", "--learning-rate", type=float, default=5e-5, help="global leaning rate")
 parser.add_argument("-i", "--image-size", type=int, default=32, help="size of the square input image (side)")
 parser.add_argument("-a", "--attn-win", type=int, default=6, help="size of square attention window (side)")
