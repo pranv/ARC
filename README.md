@@ -10,9 +10,9 @@ Models that have the capacity of recognizing the subtle similarities or differen
     * [Theano](http://deeplearning.net/software/theano/) `pip install --upgrade https://github.com/Theano/Theano/archive/master.zip`
     * [Lasagne](http://lasagne.readthedocs.io/en/latest/index.html) `pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip`
 
-2. Download this repository and prepare the data. The following commands will download, preprocess and store the dataset on the disk for use during training.
-  * To prepare Omniglot dataset: `cd data/; python setup_omniglot.py`
-  * To prepare LFW dataset: `cd data/; python setup_lfw.py`
+2. Download this repository and prepare the data. Running the following scripts will download, preprocess and store the dataset on the disk for use during training. From the home directory of the repo:
+  * To prepare Omniglot dataset: `python data/setup_omniglot.py`
+  * To prepare LFW dataset: `python data/setup_lfw.py`
 
 3. Train the networks. The following code segments train the models with the default hyper-parameters. These can be changed by passing command line arguments. Refer to help for this via `python <script.py> -h`
   * To train Binary ARC model from the paper on Omniglot Verfication task: `python arc_omniglot_verif.py`
