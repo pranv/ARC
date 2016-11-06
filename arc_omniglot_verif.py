@@ -9,6 +9,8 @@ parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of gli
 parser.add_argument("-f", "--fg-bias", type=float, default=0.2, help="initial bias of the forget gate of LSTM controller")
 parser.add_argument("-b", "--batch-size", type=int, default=32, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
+parser.add_argument("-m", "--max-iter", type=int, default=300000, help="number of iteration to train the net for")
+parser.add_argument("-p", "--dropout", type=float, default=0.0, help="dropout on the input")
 
 meta_data = vars(parser.parse_args())
 
@@ -23,12 +25,14 @@ glimpses = meta_data["glimpses"]
 lstm_states = meta_data["lstm_states"]
 fg_bias = meta_data["fg_bias"]
 batch_size = meta_data["batch_size"]
+dropout = meta_data["dropout"]
+N_ITER_MAX = meta_data["max_iter"]
 
 data_split = [30, 10]
 val_freq = 1000
+val_batch_size = batch_size * 4
 val_num_batches = 200
 test_num_batches = 2000
-N_ITER_MAX = 1000000
 
 
 print "... importing libraries"
@@ -38,7 +42,7 @@ import theano
 import theano.tensor as T
 
 import lasagne
-from lasagne.layers import InputLayer, DenseLayer
+from lasagne.layers import InputLayer, DenseLayer, DropoutLayer
 from lasagne.nonlinearities import sigmoid
 from lasagne.layers import get_all_params, get_output
 from lasagne.objectives import binary_crossentropy
@@ -59,7 +63,8 @@ X = T.tensor3("input")
 y = T.imatrix("target")
 
 l_in = InputLayer(shape=(None, image_size, image_size), input_var=X)
-l_arc = ARC(l_in, lstm_states=lstm_states, image_size=image_size, attn_win=attn_win, 
+l_noise = DropoutLayer(l_in, p=dropout)
+l_arc = ARC(l_noise, lstm_states=lstm_states, image_size=image_size, attn_win=attn_win, 
 					glimpses=glimpses, fg_bias_init=fg_bias)
 l_y = DenseLayer(l_arc, 1, nonlinearity=sigmoid)
 
@@ -102,10 +107,15 @@ try:
 		print "iteration: ", iter_n, " | training loss: ", smooth_loss, " | batch run time: ", np.round((tock - tick), 3) * 1000, "ms"
 		meta_data["training_loss"].append((iter_n, batch_loss))
 
+		if np.isnan(batch_loss):
+			print "****" * 100
+			print "NaNs Detected"
+			break
+
 		if iter_n % val_freq == 0:
 			net_val_loss, net_val_acc = 0.0, 0.0
 			for i in range(val_num_batches):
-				X_val, y_val = worker.fetch_verif_batch(batch_size, 'val')
+				X_val, y_val = worker.fetch_verif_batch(val_batch_size, 'val')
 				val_loss, val_acc = val_fn(X_val, y_val)
 				net_val_loss += val_loss
 				net_val_acc += val_acc
