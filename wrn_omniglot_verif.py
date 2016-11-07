@@ -5,8 +5,8 @@ parser.add_argument("-l", "--learning-rate", type=float, default=1e-3, help="glo
 parser.add_argument("-i", "--image-size", type=int, default=32, help="size of the square input image (side)")
 parser.add_argument("-b", "--batch-size", type=int, default=32, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
-parser.add_argument("-m", "--max-iter", type=int, default=100000, help="number of iteration to train the net for")
-parser.add_argument("-d", "--depth", type=int, default=16, help="the resnet is 3d+2 resnet blocks deep")
+parser.add_argument("-m", "--max-iter", type=int, default=60000, help="number of iteration to train the net for")
+parser.add_argument("-d", "--depth", type=int, default=8, help="the resnet is 3d+2 resnet blocks deep")
 parser.add_argument("-k", "--width", type=int, default=4, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
@@ -151,11 +151,11 @@ try:
 		X_train = X_train.reshape(-1, 1, image_size, image_size)
 		batch_loss = train_fn(X_train, y_train)
 		tock = time.clock()
-
-		smooth_loss = 0.95 * smooth_loss + 0.05 * batch_loss
-		print "iteration: ", iter_n, " | training loss: ", smooth_loss, " | batch run time: ", np.round((tock - tick), 3) * 1000, "ms"
 		meta_data["training_loss"].append((iter_n, batch_loss))
 
+		smooth_loss = 0.99 * smooth_loss + 0.01 * batch_loss
+		print "iteration: ", iter_n, " | ", np.round((tock - tick), 3) * 1000, "ms", " | training loss: ", np.round(smooth_loss, 3)
+		
 		if np.isnan(batch_loss):
 			print "****" * 100
 			print "NaNs Detected"
