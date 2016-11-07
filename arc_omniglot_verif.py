@@ -76,6 +76,9 @@ accuracy = T.mean(T.eq(prediction > 0.5, y), dtype=theano.config.floatX)
 params = get_all_params(l_y)
 updates = adam(loss, params, learning_rate=learning_rate)
 
+meta_data["num_param"] = lasagne.layers.count_params(l_y)
+print "number of parameters: ", meta_data["num_param"]
+
 print "... compiling"
 train_fn = theano.function([X, y], outputs=loss, updates=updates)
 val_fn = theano.function([X, y], outputs=[loss, accuracy])
@@ -88,6 +91,7 @@ meta_data["training_loss"] = []
 meta_data["validation_loss"] = []
 meta_data["validation_accuracy"] = []
 
+best_val_loss = np.inf
 best_val_acc = 0.0
 iter_n = 0
 best_iter_n = 0
@@ -132,6 +136,9 @@ try:
 
 			if val_acc > best_val_acc:
 				best_val_acc = val_acc
+
+			if val_loss < best_val_loss:
+				best_val_loss = val_loss
 				best_iter_n = iter_n
 				best_params = helper.get_all_param_values(l_y)
 

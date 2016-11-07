@@ -105,20 +105,23 @@ bn_post_relu = NonlinearityLayer(bn_post_conv, rectify)
 avg_pool = GlobalPoolLayer(bn_post_relu)
 dense_layer = DenseLayer(avg_pool, num_units=128, W=HeNormal(), nonlinearity=rectify)
 dist_layer = ExpressionLayer(dense_layer, lambda I: T.abs_(I[:I.shape[0]/2] - I[I.shape[0]/2:]), output_shape='auto')
-output_layer = DenseLayer(dist_layer, num_units=1, nonlinearity=sigmoid)
+l_y = DenseLayer(dist_layer, num_units=1, nonlinearity=sigmoid)
 
-prediction = get_output(output_layer)
-prediction_clean = get_output(output_layer, deterministic=True)
+prediction = get_output(l_y)
+prediction_clean = get_output(l_y, deterministic=True)
 
 loss = T.mean(binary_crossentropy(prediction, y))
 accuracy = T.mean(T.eq(prediction_clean > 0.5, y), dtype=theano.config.floatX)
 
-all_layers = get_all_layers(output_layer)
+all_layers = get_all_layers(l_y)
 l2_penalty = 0.0001 * regularize_layer_params(all_layers, lasagne.regularization.l2)
 loss = loss + l2_penalty
 
-params = get_all_params(output_layer, trainable=True)
+params = get_all_params(l_y, trainable=True)
 updates = adam(loss, params, learning_rate=learning_rate)
+
+meta_data["num_param"] = lasagne.layers.count_params(l_y)
+print "number of parameters: ", meta_data["num_param"]
 
 print "... compiling"
 train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
@@ -132,10 +135,11 @@ meta_data["training_loss"] = []
 meta_data["validation_loss"] = []
 meta_data["validation_accuracy"] = []
 
+best_val_loss = np.inf
 best_val_acc = 0.0
 iter_n = 0
 best_iter_n = 0
-best_params = helper.get_all_param_values(output_layer)
+best_params = helper.get_all_param_values(l_y)
 
 smooth_loss = 0.6932
 try:
@@ -178,8 +182,11 @@ try:
 
 			if val_acc > best_val_acc:
 				best_val_acc = val_acc
+
+			if val_loss < best_val_loss:
+				best_val_loss = val_loss
 				best_iter_n = iter_n
-				best_params = helper.get_all_param_values(output_layer)
+				best_params = helper.get_all_param_values(l_y)
 
 except KeyboardInterrupt:
 	pass
