@@ -69,9 +69,10 @@ l_arc = ARC(l_noise, lstm_states=lstm_states, image_size=image_size, attn_win=at
 l_y = DenseLayer(l_arc, 1, nonlinearity=sigmoid)
 
 prediction = get_output(l_y)
+prediction_clean = get_output(l_y, deterministic=True)
 
 loss = T.mean(binary_crossentropy(prediction, y))
-accuracy = T.mean(T.eq(prediction > 0.5, y), dtype=theano.config.floatX)
+accuracy = T.mean(T.eq(prediction_clean > 0.5, y), dtype=theano.config.floatX)
 
 params = get_all_params(l_y)
 updates = adam(loss, params, learning_rate=learning_rate)
@@ -106,15 +107,39 @@ try:
 		X_train, y_train = worker.fetch_verif_batch(batch_size, 'train')
 		batch_loss = train_fn(X_train, y_train)
 		tock = time.clock()
-
-		smooth_loss = 0.95 * smooth_loss + 0.05 * batch_loss
-		print "iteration: ", iter_n, " | training loss: ", smooth_loss, " | batch run time: ", np.round((tock - tick), 3) * 1000, "ms"
 		meta_data["training_loss"].append((iter_n, batch_loss))
 
+		smooth_loss = 0.99 * smooth_loss + 0.01 * batch_loss
+		print "iteration: ", iter_n, " | ", np.round((tock - tick), 3) * 1000, "ms", " | training loss: ", np.round(smooth_loss, 3)
+		
 		if np.isnan(batch_loss):
-			print "****" * 100
-			print "NaNs Detected"
+			print "... NaN Detected, terminating"
 			break
+
+		if smooth_loss > 0.3 and iter_n > 80000:
+			print "... poor performace, terminating"
+			break
+
+		if smooth_loss > 0.4 and iter_n > 40000:
+			print "... poor performace, terminating"
+			break
+
+		if smooth_loss > 0.5 and iter_n > 20000:
+			print "... poor performace, terminating"
+			break
+
+		if smooth_loss > 0.6 and iter_n > 10000:
+			print "... poor performace, terminating"
+			break
+
+		if smooth_loss > 0.65 and iter_n > 5000:
+			print "... poor performace, terminating"
+			break
+
+		if smooth_loss > 0.69 and iter_n > 2500:
+			print "... poor performace, terminating"
+			break
+
 
 		if iter_n % val_freq == 0:
 			net_val_loss, net_val_acc = 0.0, 0.0
