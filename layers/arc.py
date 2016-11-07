@@ -3,6 +3,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.ifelse import ifelse
+from theano.gradient import grad_clip
 
 import lasagne
 
@@ -57,11 +58,11 @@ class ARC(lasagne.layers.Layer):
 		self.glimpses = glimpses
 		self.final_state_only = final_state_only
 
-	def attend(self, I, H):
+	def attend(self, I, H, W):
 		attn_win = self.attn_win
 		image_size = self.image_size
 
-		gp = T.dot(self.W_g, H.T).T
+		gp = T.tanh(T.dot(W, H.T).T)
 
 		center_y = gp[:, 0].dimshuffle(0, 'x')
 		center_x = gp[:, 1].dimshuffle(0, 'x')
@@ -98,15 +99,15 @@ class ARC(lasagne.layers.Layer):
 		even_input = input[:B/2]
 		odd_input = input[B/2:]
 
-		def step(glimpse_count, c_tm1, h_tm1):
+		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_g):
 			# c_tm1, h_tm1 are (B/2, lstm_states)
 			I = ifelse(T.eq(glimpse_count % 2, 0), even_input, odd_input) # (B/2, image_size, image_size)
-			glimpse = self.attend(I, h_tm1) # (B/2, attn_win, attn_win)
+			glimpse = self.attend(I, h_tm1, W_g) # (B/2, attn_win, attn_win)
 			flat_glimpse = glimpse.reshape((B/2, -1))
 
 			# (4 * lstm_states, num_input + lstm_states + 1) x transpose(B / 2, num_input + lstm_states + 1)
 			lstm_ip = T.concatenate([flat_glimpse, h_tm1, T.ones((B/2, 1))], axis=1)
-			pre_activation = T.dot(self.W_lstm, lstm_ip.T) # (4 * lstm_states, B / 2)
+			pre_activation = T.dot(W_lstm, lstm_ip.T) # (4 * lstm_states, B / 2)
 
 			z = T.tanh(pre_activation[0*lstm_states:1*lstm_states])
 			i = T.nnet.sigmoid(pre_activation[1*lstm_states:2*lstm_states])
@@ -116,8 +117,8 @@ class ARC(lasagne.layers.Layer):
 			c_t = f * c_tm1.T + i * z 	# (lstm_states, B / 2)
 			h_t = o * T.tanh(c_t)
 
-			c_t = T.clip(c_t, -1.0, 1.0)
-			h_t = T.clip(h_t, -1.0, 1.0)
+			c_t = grad_clip(c_t, -1.0, 1.0)
+			h_t = grad_clip(h_t, -1.0, 1.0)
 
 			return glimpse_count + 1, c_t.T, h_t.T # (B/2, lstm_states)
 
@@ -125,8 +126,8 @@ class ARC(lasagne.layers.Layer):
 		c_0 = T.zeros((B/2, lstm_states))
 		h_0 = T.zeros((B/2, lstm_states))
 
-		_, cells, hiddens = theano.scan(fn=step, outputs_info=[glimpse_count_0, c_0, h_0], 
-										n_steps=self.glimpses * 2)[0]
+		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, self.W_g], 
+						outputs_info=[glimpse_count_0, c_0, h_0], n_steps=self.glimpses * 2, strict=True)[0]
 
 		if self.final_state_only:
 			return hiddens[-1]
