@@ -67,8 +67,7 @@ class ARC(lasagne.layers.Layer):
 		center_y = gp[:, 0].dimshuffle(0, 'x')
 		center_x = gp[:, 1].dimshuffle(0, 'x')
 		delta = 1.0 - T.abs_(gp[:, 2]).dimshuffle(0, 'x')
-		#gamma = T.exp(1.0 - 2 * T.abs_(gp[:, 2])).dimshuffle([0, 'x', 'x'])
-		gamma = T.exp(2 * delta - 1.0).dimshuffle([0, 'x', 'x'])
+		gamma = T.exp(1.0 - 2 * T.abs_(gp[:, 2])).dimshuffle([0, 'x', 'x'])
 
 		center_y = image_size * (center_y + 1.0) / 2.0
 		center_x = image_size * (center_x + 1.0) / 2.0
