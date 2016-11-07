@@ -157,8 +157,7 @@ try:
 		print "iteration: ", iter_n, " | ", np.round((tock - tick), 3) * 1000, "ms", " | training loss: ", np.round(smooth_loss, 3)
 		
 		if np.isnan(batch_loss):
-			print "****" * 100
-			print "NaNs Detected"
+			print "... NaN Detected, terminating"
 			break
 
 		if iter_n % val_freq == 0:
