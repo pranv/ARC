@@ -1,12 +1,12 @@
 import argparse
 parser = argparse.ArgumentParser(description="Command Line Interface for Setting HyperParameter Values")
 parser.add_argument("-n", "--expt-name", type=str, default="a_o_test", help="experiment name for logging purposes")
-parser.add_argument("-l", "--learning-rate", type=float, default=5e-5, help="global leaning rate")
-parser.add_argument("-i", "--image-size", type=int, default=32, help="size of the square input image (side)")
-parser.add_argument("-a", "--attn-win", type=int, default=6, help="size of square attention window (side)")
-parser.add_argument("-s", "--lstm-states", type=int, default=512, help="number of LSTM controller states")
-parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of glimpses per image")
-parser.add_argument("-f", "--fg-bias", type=float, default=0.2, help="initial bias of the forget gate of LSTM controller")
+parser.add_argument("-l", "--learning-rate", type=float, default=1e-4, help="global leaning rate")
+parser.add_argument("-i", "--image-size", type=int, default=16, help="size of the square input image (side)")
+parser.add_argument("-a", "--attn-win", type=int, default=4, help="size of square attention window (side)")
+parser.add_argument("-s", "--lstm-states", type=int, default=1024, help="number of LSTM controller states")
+parser.add_argument("-g", "--glimpses", type=int, default=4, help="number of glimpses per image")
+parser.add_argument("-f", "--fg-bias", type=float, default=0.0, help="initial bias of the forget gate of LSTM controller")
 parser.add_argument("-b", "--batch-size", type=int, default=32, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
 parser.add_argument("-m", "--max-iter", type=int, default=300000, help="number of iteration to train the net for")
@@ -30,8 +30,7 @@ N_ITER_MAX = meta_data["max_iter"]
 
 data_split = [30, 10]
 val_freq = 1000
-val_batch_size = batch_size * 4
-val_num_batches = 200
+val_num_batches = 500
 test_num_batches = 2000
 
 
@@ -144,7 +143,7 @@ try:
 		if iter_n % val_freq == 0:
 			net_val_loss, net_val_acc = 0.0, 0.0
 			for i in range(val_num_batches):
-				X_val, y_val = worker.fetch_verif_batch(val_batch_size, 'val')
+				X_val, y_val = worker.fetch_verif_batch(batch_size, 'val')
 				val_loss, val_acc = val_fn(X_val, y_val)
 				net_val_loss += val_loss
 				net_val_acc += val_acc
