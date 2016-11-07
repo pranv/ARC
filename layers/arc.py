@@ -7,28 +7,11 @@ from theano.gradient import grad_clip
 
 import lasagne
 
+from utils import ortho_init, normal_init, batched_dot
+
 
 PI = np.pi
 dtype = theano.config.floatX
-
-
-def ortho_init(shape):
-	"""
-	taken from: https://github.com/Lasagne/Lasagne/blob/master/lasagne/init.py#L327-L367
-	"""
-	a = np.random.normal(0.0, 1.0, shape)
-	u, _, v = np.linalg.svd(a, full_matrices=False)
-	W = u if u.shape == shape else v 	# pick the one with the correct shape
-	return W.astype(dtype)
-
-def normal_init(shape, sigma):
-	W = np.random.normal(0.0, sigma, shape)
-	return W.astype(dtype)
-
-
-def batched_dot(A, B):
-	C = A.dimshuffle([0, 1, 2, 'x']) * B.dimshuffle([0, 'x', 1, 2])      
-	return C.sum(axis=-2)
 
 
 class ARC(lasagne.layers.Layer):
@@ -116,8 +99,8 @@ class ARC(lasagne.layers.Layer):
 			c_t = f * c_tm1.T + i * z 	# (lstm_states, B / 2)
 			h_t = o * T.tanh(c_t)
 
-			c_t = grad_clip(c_t, -1.0, 1.0)
-			h_t = grad_clip(h_t, -1.0, 1.0)
+			c_t = T.clip(c_t, -1.0, 1.0)
+			h_t = T.clip(h_t, -1.0, 1.0)
 
 			return glimpse_count + 1, c_t.T, h_t.T # (B/2, lstm_states)
 

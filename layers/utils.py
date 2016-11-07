@@ -1,3 +1,10 @@
+import numpy as np
+
+import theano
+
+dtype = theano.config.floatX
+
+
 def ortho_init(shape):
 	"""
 	taken from: https://github.com/Lasagne/Lasagne/blob/master/lasagne/init.py#L327-L367
