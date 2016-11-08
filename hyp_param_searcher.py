@@ -26,11 +26,11 @@ for expt_num in range(EXPT_START_NUM, EXPT_START_NUM + NUM_EXPTS):
 		fb = 1.0
 	elif g == 32:
 		fb = 2.0
-	arg_string += " -f " + str(fb) 								# fg-bias
+	arg_string += " -f " + str(fb) 									# fg-bias
 	
 	arg_string += " -b " + str(choice([32, 64])) 					# batch-size
-	arg_string += " -p " + str(choice([0.0, 0.1, 0.3, 0.5])) 	# dropout
-	arg_string += " -m " + str(100000) 								# max-iterations
+	arg_string += " -p " + str(choice([0.0, 0.1, 0.3, 0.5])) 		# dropout
+	arg_string += " -m " + str(3000000) 								# max-iterations
 	arg_string += " -u"
 
 	os.system(arg_string)
