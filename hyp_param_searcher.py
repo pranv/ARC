@@ -3,7 +3,7 @@ from numpy.random import choice, random
 
 import os
 
-EXPT_START_NUM = 200
+EXPT_START_NUM = 3000
 NUM_EXPTS = 1000
 
 for expt_num in range(EXPT_START_NUM, EXPT_START_NUM + NUM_EXPTS):
