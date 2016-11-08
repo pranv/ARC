@@ -11,7 +11,7 @@ parser.add_argument("-b", "--batch-size", type=int, default=64, help="batch size
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
 parser.add_argument("-m", "--max-iter", type=int, default=300000, help="number of iteration to train the net for")
 parser.add_argument("-p", "--dropout", type=float, default=0.0, help="dropout on the input")
-parser.add_argument("-h", "--hyp-tuning", action="store_false", help="add conditional terminations while tuning params")
+parser.add_argument("-u", "--hyp-tuning", action="store_false", help="add conditional terminations while tuning params")
 
 meta_data = vars(parser.parse_args())
 
