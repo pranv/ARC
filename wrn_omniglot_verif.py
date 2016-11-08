@@ -6,7 +6,7 @@ parser.add_argument("-i", "--image-size", type=int, default=32, help="size of th
 parser.add_argument("-b", "--batch-size", type=int, default=32, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
 parser.add_argument("-m", "--max-iter", type=int, default=60000, help="number of iteration to train the net for")
-parser.add_argument("-d", "--depth", type=int, default=8, help="the resnet is 3d+2 resnet blocks deep")
+parser.add_argument("-d", "--depth", type=int, default=8, help="the resnet has depth equal to 6d+2")
 parser.add_argument("-k", "--width", type=int, default=4, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
@@ -24,8 +24,7 @@ wrn_k = meta_data["width"]
 
 data_split = [30, 10]
 val_freq = 1000
-val_batch_size = batch_size * 4
-val_num_batches = 200
+val_num_batches = 500
 test_num_batches = 2000
 
 print "... importing libraries"
@@ -43,7 +42,7 @@ from lasagne.layers import DenseLayer, DropoutLayer
 from lasagne.layers import batch_norm, BatchNormLayer, ExpressionLayer
 from lasagne.layers import Conv2DLayer as ConvLayer
 from lasagne.layers import ElemwiseSumLayer, NonlinearityLayer, GlobalPoolLayer
-from lasagne.nonlinearities import rectify, softmax, sigmoid
+from lasagne.nonlinearities import rectify, sigmoid
 from lasagne.init import HeNormal
 from lasagne.layers import get_all_params, get_all_layers, get_output
 from lasagne.regularization import regularize_layer_params
@@ -163,7 +162,7 @@ try:
 		if iter_n % val_freq == 0:
 			net_val_loss, net_val_acc = 0.0, 0.0
 			for i in range(val_num_batches):
-				X_val, y_val = worker.fetch_verif_batch(val_batch_size, 'val')
+				X_val, y_val = worker.fetch_verif_batch(batch_size, 'val')
 				X_val = X_val.reshape(-1, 1, image_size, image_size)
 				val_loss, val_acc = val_fn(X_val, y_val)
 				net_val_loss += val_loss
