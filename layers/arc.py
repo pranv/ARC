@@ -16,24 +16,23 @@ dtype = theano.config.floatX
 
 class ARC(lasagne.layers.Layer):
 	def __init__(self, incoming, lstm_states, image_size, attn_win, 
-					glimpses, fg_bias_init, learnt_params=None, final_state_only=True, **kwargs):
+					glimpses, fg_bias_init, final_state_only=True, **kwargs):
 		super(ARC, self).__init__(incoming, **kwargs)
 		num_input = attn_win ** 2
 
-		if learnt_params is None:
-			# W_lstm is the whole weight matrix of the LSTM controller.
-			# takes in (num_input + lstm_states + 1, B) input to give (4 * lstm_states, B) output
-			W_lstm = np.zeros((4 * lstm_states, num_input + lstm_states + 1), dtype=dtype)
-			for i in range(4):
-				W_lstm[i*lstm_states:(i + 1)*lstm_states, :num_input] = ortho_init(shape=(lstm_states, num_input))
-				W_lstm[i*lstm_states:(i + 1)*lstm_states, num_input:-1] = ortho_init(shape=(lstm_states, lstm_states))
-			W_lstm[2*lstm_states:3*lstm_states, -1] = fg_bias_init
-			W_g = normal_init(shape=(4, lstm_states), sigma=0.01)
-		else:
-			W_lstm, W_g = learnt_params
+		# W_lstm is the whole weight matrix of the LSTM controller.
+		# takes in (num_input + lstm_states + 1, B) input to give (4 * lstm_states, B) output
+		W_lstm = np.zeros((4 * lstm_states, num_input + lstm_states + 1), dtype=dtype)
+		for i in range(4):
+			W_lstm[i*lstm_states:(i + 1)*lstm_states, :num_input] = ortho_init(shape=(lstm_states, num_input))
+			W_lstm[i*lstm_states:(i + 1)*lstm_states, num_input:-1] = ortho_init(shape=(lstm_states, lstm_states))
+		W_lstm[2*lstm_states:3*lstm_states, -1] = fg_bias_init
+		W_gA = normal_init(shape=(4, lstm_states), sigma=0.01)
+		W_gB = normal_init(shape=(4, lstm_states), sigma=0.01)
 
 		self.W_lstm = self.add_param(W_lstm, (4 * lstm_states, num_input + lstm_states + 1), name='W_lstm')
-		self.W_g = self.add_param(W_g, (4, lstm_states), name='W_g')
+		self.W_gA = self.add_param(W_gA, (4, lstm_states), name='W_gA')
+		self.W_gB = self.add_param(W_gB, (4, lstm_states), name='W_gB')
 
 		self.lstm_states = lstm_states
 		self.image_size = image_size
@@ -81,9 +80,10 @@ class ARC(lasagne.layers.Layer):
 		even_input = input[:B/2]
 		odd_input = input[B/2:]
 
-		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_g):
+		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_gA, W_gB):
 			# c_tm1, h_tm1 are (B/2, lstm_states)
 			I = ifelse(T.eq(glimpse_count % 2, 0), even_input, odd_input) # (B/2, image_size, image_size)
+			W_g = ifelse(T.eq(glimpse_count % 2, 0), W_gA, W_gB) # (B/2, image_size, image_size)
 			glimpse = self.attend(I, h_tm1, W_g) # (B/2, attn_win, attn_win)
 			flat_glimpse = glimpse.reshape((B/2, -1))
 
@@ -108,7 +108,7 @@ class ARC(lasagne.layers.Layer):
 		c_0 = T.zeros((B/2, lstm_states))
 		h_0 = T.zeros((B/2, lstm_states))
 
-		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, self.W_g], 
+		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, self.W_gA, self.W_gB], 
 						outputs_info=[glimpse_count_0, c_0, h_0], n_steps=self.glimpses * 2, strict=True)[0]
 
 		if self.final_state_only:
