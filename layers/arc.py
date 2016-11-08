@@ -27,12 +27,10 @@ class ARC(lasagne.layers.Layer):
 			W_lstm[i*lstm_states:(i + 1)*lstm_states, :num_input] = ortho_init(shape=(lstm_states, num_input))
 			W_lstm[i*lstm_states:(i + 1)*lstm_states, num_input:-1] = ortho_init(shape=(lstm_states, lstm_states))
 		W_lstm[2*lstm_states:3*lstm_states, -1] = fg_bias_init
-		W_gA = normal_init(shape=(4, lstm_states), sigma=0.01)
-		W_gB = normal_init(shape=(4, lstm_states), sigma=0.01)
+		W_g = normal_init(shape=(4, 2 * lstm_states), sigma=0.01)
 
 		self.W_lstm = self.add_param(W_lstm, (4 * lstm_states, num_input + lstm_states + 1), name='W_lstm')
-		self.W_gA = self.add_param(W_gA, (4, lstm_states), name='W_gA')
-		self.W_gB = self.add_param(W_gB, (4, lstm_states), name='W_gB')
+		self.W_g = self.add_param(W_g, (4, 2 * lstm_states), name='W_g')
 
 		self.lstm_states = lstm_states
 		self.image_size = image_size
@@ -79,36 +77,41 @@ class ARC(lasagne.layers.Layer):
 
 		even_input = input[:B/2]
 		odd_input = input[B/2:]
+		W_gA = self.W_g[:, :lstm_states]
+		W_gB = self.W_g[:, lstm_states:]
 
 		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_gA, W_gB):
 			# c_tm1, h_tm1 are (B/2, lstm_states)
-			I = ifelse(T.eq(glimpse_count % 2, 0), even_input, odd_input) # (B/2, image_size, image_size)
-			W_g = ifelse(T.eq(glimpse_count % 2, 0), W_gA, W_gB) # (B/2, image_size, image_size)
-			glimpse = self.attend(I, h_tm1, W_g) # (B/2, attn_win, attn_win)
+			
+			turn = T.eq(glimpse_count % 2, 0)
+			I = ifelse(turn, even_input, odd_input) 	# (B/2, image_size, image_size)
+			W_g = ifelse(turn, W_gA, W_gB)			 	# (B/2, image_size, image_size)
+			
+			glimpse = self.attend(I, h_tm1, W_g) 		# (B/2, attn_win, attn_win)
 			flat_glimpse = glimpse.reshape((B/2, -1))
 
 			# (4 * lstm_states, num_input + lstm_states + 1) x transpose(B / 2, num_input + lstm_states + 1)
 			lstm_ip = T.concatenate([flat_glimpse, h_tm1, T.ones((B/2, 1))], axis=1)
-			pre_activation = T.dot(W_lstm, lstm_ip.T) # (4 * lstm_states, B / 2)
+			pre_activation = T.dot(W_lstm, lstm_ip.T) 	# (4 * lstm_states, B / 2)
 
 			z = T.tanh(pre_activation[0*lstm_states:1*lstm_states])
 			i = T.nnet.sigmoid(pre_activation[1*lstm_states:2*lstm_states])
 			f = T.nnet.sigmoid(pre_activation[2*lstm_states:3*lstm_states])
 			o = T.nnet.sigmoid(pre_activation[3*lstm_states:4*lstm_states])
 
-			c_t = f * c_tm1.T + i * z 	# (lstm_states, B / 2)
+			c_t = f * c_tm1.T + i * z 					# (lstm_states, B / 2)
 			h_t = o * T.tanh(c_t)
 
 			c_t = T.clip(c_t, -1.0, 1.0)
 			h_t = T.clip(h_t, -1.0, 1.0)
 
-			return glimpse_count + 1, c_t.T, h_t.T # (B/2, lstm_states)
+			return glimpse_count + 1, c_t.T, h_t.T 		# (B/2, lstm_states)
 
 		glimpse_count_0 = 0
 		c_0 = T.zeros((B/2, lstm_states))
 		h_0 = T.zeros((B/2, lstm_states))
 
-		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, self.W_gA, self.W_gB], 
+		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, W_gA, W_gB], 
 						outputs_info=[glimpse_count_0, c_0, h_0], n_steps=self.glimpses * 2, strict=True)[0]
 
 		if self.final_state_only:
