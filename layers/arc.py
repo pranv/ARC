@@ -76,8 +76,8 @@ class ARC(lasagne.layers.Layer):
 		lstm_states = self.lstm_states
 
 		# (B, image_size, image_size)
-		even_input = input[:B]
-		odd_input = input[B:]
+		odd_input = input[:B]
+		even_input = input[B:]
 
 		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_g):
 			# c_tm1, h_tm1 are (B, lstm_states)
@@ -114,7 +114,7 @@ class ARC(lasagne.layers.Layer):
 		h_0 = T.zeros((B, lstm_states))
 
 		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, self.W_g], 
-						outputs_info=[glimpse_count_0, c_0, h_0], n_steps=self.glimpses * 2, strict=True)[0]
+						outputs_info=[glimpse_count_0, c_0, h_0], n_steps=self.glimpses * 2)[0]
 
 		if self.final_state_only:
 			return hiddens[-1]
