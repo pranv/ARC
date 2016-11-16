@@ -3,7 +3,6 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.ifelse import ifelse
-from theano.gradient import grad_clip
 
 import lasagne
 
@@ -28,10 +27,10 @@ class ARC(lasagne.layers.Layer):
 			W_lstm[i*lstm_states:(i + 1)*lstm_states, :num_input] = ortho_init(shape=(lstm_states, num_input))
 			W_lstm[i*lstm_states:(i + 1)*lstm_states, num_input:-1] = ortho_init(shape=(lstm_states, lstm_states))
 		W_lstm[2*lstm_states:3*lstm_states, -1] = fg_bias_init
-		W_g = normal_init(shape=(4, 2 * lstm_states), sigma=0.01)
+		W_g = normal_init(shape=(3, lstm_states), sigma=0.01)
 
 		self.W_lstm = self.add_param(W_lstm, (4 * lstm_states, num_input + lstm_states + 1), name='W_lstm')
-		self.W_g = self.add_param(W_g, (4, 2 * lstm_states), name='W_g')
+		self.W_g = self.add_param(W_g, (3, lstm_states), name='W_g')
 
 		self.lstm_states = lstm_states
 		self.image_size = image_size
@@ -73,31 +72,27 @@ class ARC(lasagne.layers.Layer):
 		return G
 
 	def get_output_for(self, input, **kwargs):
-		B = input.shape[0]		# batch size
-		b = B / 2				# semi batch - the one half of the pair
+		B = input.shape[0] / 2		# batch size
 		lstm_states = self.lstm_states
 
-		even_input = input[:b]
-		odd_input = input[b:]
-		W_gA = self.W_g[:, :lstm_states]
-		W_gB = self.W_g[:, lstm_states:]
+		even_input = input[:B]
+		odd_input = input[B:]
 
-		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_gA, W_gB):
-			# c_tm1, h_tm1 are (b, lstm_states)
+		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_g):
+			# c_tm1, h_tm1 are (B, lstm_states)
 			
 			turn = T.eq(glimpse_count % 2, 0)
-			# (b, image_size, image_size)
+			# (B, image_size, image_size)
 			I = ifelse(turn, even_input, odd_input)
-			# (b, image_size, image_size)
-			W_g = ifelse(turn, W_gA, W_gB)
+			# (B, image_size, image_size)
 			
-			# (b, attn_win, attn_win)
+			# (B, attn_win, attn_win)
 			glimpse = self.attend(I, h_tm1, W_g)
-			flat_glimpse = glimpse.reshape((b, -1))
+			flat_glimpse = glimpse.reshape((B, -1))
 
-			# (4 * states, num_input + states + 1) x transpose(b, num_input + states + 1)
-			# result = (4 * states, b)
-			lstm_ip = T.concatenate([flat_glimpse, h_tm1, T.ones((b, 1))], axis=1)
+			# (4 * states, num_input + states + 1) x transpose(B, num_input + states + 1)
+			# result = (4 * states, B)
+			lstm_ip = T.concatenate([flat_glimpse, h_tm1, T.ones((B, 1))], axis=1)
 			pre_activation = T.dot(W_lstm, lstm_ip.T) 	
 
 			z = T.tanh(pre_activation[0*lstm_states:1*lstm_states])
@@ -105,21 +100,21 @@ class ARC(lasagne.layers.Layer):
 			f = T.nnet.sigmoid(pre_activation[2*lstm_states:3*lstm_states])
 			o = T.nnet.sigmoid(pre_activation[3*lstm_states:4*lstm_states])
 
-			# all in (states, b)
+			# all in (states, B)
 			c_t = f * c_tm1.T + i * z
 			h_t = o * T.tanh(c_t)
 
-			c_t = T.clip(c_t, -1.0, 1.0)
-			h_t = T.clip(h_t, -1.0, 1.0)
+			#c_t = T.clip(c_t, -1.0, 1.0)
+			#h_t = T.clip(h_t, -1.0, 1.0)
 
-			# output (b, states)
+			# output (B, states)
 			return glimpse_count + 1, c_t.T, h_t.T
 
 		glimpse_count_0 = 0
-		c_0 = T.zeros((b, lstm_states))
-		h_0 = T.zeros((b, lstm_states))
+		c_0 = T.zeros((B, lstm_states))
+		h_0 = T.zeros((B, lstm_states))
 
-		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, W_gA, W_gB], 
+		_, cells, hiddens = theano.scan(fn=step, non_sequences=[odd_input, even_input, self.W_lstm, self.W_g], 
 						outputs_info=[glimpse_count_0, c_0, h_0], n_steps=self.glimpses * 2, strict=True)[0]
 
 		if self.final_state_only:
