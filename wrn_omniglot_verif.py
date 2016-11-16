@@ -129,7 +129,7 @@ train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
 val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 
 print "... loading dataset"
-worker = Omniglot(img_size=image_size, data_split=data_split, within_alphabet=within_alphabet)
+worker = Omniglot(image_size=image_size, data_split=data_split, within_alphabet=within_alphabet)
 
 print "... begin training"
 meta_data["training_loss"] = []
