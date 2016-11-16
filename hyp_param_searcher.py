@@ -12,7 +12,7 @@ for expt_num in range(EXPT_START_NUM, EXPT_START_NUM + NUM_EXPTS):
 	arg_string += " -n " + str(expt_num) 							# expt-name
 	arg_string += " -l " + str(10.0 ** (-3 * random() - 3)) 		# learning-rate
 	arg_string += " -i " + str(32)									# image-size
-	arg_string += " -a " + str(choice([4, 6])) 						# attn-win
+	arg_string += " -w " + str(choice([4, 6])) 						# attn-win
 	arg_string += " -s " + str(choice([256, 512, 1024]))			# lstm-states
 	
 	# glimpses
