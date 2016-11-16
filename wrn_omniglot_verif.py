@@ -8,6 +8,7 @@ parser.add_argument("-t", "--testing", action="store_true", help="report test se
 parser.add_argument("-m", "--max-iter", type=int, default=60000, help="number of iteration to train the net for")
 parser.add_argument("-d", "--depth", type=int, default=8, help="the resnet has depth equal to 6d+2")
 parser.add_argument("-k", "--width", type=int, default=4, help="width multiplier for each WRN block")
+parser.add_argument("-a", "--within-alphabet", action="store_true", help="select only the character pairs that within the alphabet ")
 
 meta_data = vars(parser.parse_args())
 
@@ -21,6 +22,7 @@ batch_size = meta_data["batch_size"]
 N_ITER_MAX = meta_data["max_iter"]
 wrn_n = meta_data["depth"]
 wrn_k = meta_data["width"]
+within_alphabet = meta_data["within_alphabet"]
 
 data_split = [30, 10]
 val_freq = 1000
@@ -127,7 +129,7 @@ train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
 val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 
 print "... loading dataset"
-worker = Omniglot(img_size=image_size, data_split=data_split)
+worker = Omniglot(img_size=image_size, data_split=data_split, within_alphabet=within_alphabet)
 
 print "... begin training"
 meta_data["training_loss"] = []
