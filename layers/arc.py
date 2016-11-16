@@ -72,9 +72,10 @@ class ARC(lasagne.layers.Layer):
 		return G
 
 	def get_output_for(self, input, **kwargs):
-		B = input.shape[0] / 2		# batch size
+		B = input.shape[0] / 2		# pairs in batch
 		lstm_states = self.lstm_states
 
+		# (B, image_size, image_size)
 		even_input = input[:B]
 		odd_input = input[B:]
 
@@ -82,9 +83,7 @@ class ARC(lasagne.layers.Layer):
 			# c_tm1, h_tm1 are (B, lstm_states)
 			
 			turn = T.eq(glimpse_count % 2, 0)
-			# (B, image_size, image_size)
 			I = ifelse(turn, even_input, odd_input)
-			# (B, image_size, image_size)
 			
 			# (B, attn_win, attn_win)
 			glimpse = self.attend(I, h_tm1, W_g)
