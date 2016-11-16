@@ -11,7 +11,7 @@ from image_augmenter import ImageAugmenter
 
 class Omniglot(object):
 	def __init__(self, path='data/omniglot.npy', image_size=32, data_split=[30, 10], 
-		within_alphabet=False, flip=True, scale=1.2, rotation_deg=20, shear_deg=10,
+		within_alphabet=False, flip=True, scale=1.1, rotation_deg=10, shear_deg=5,
                  translation_px=3):
 		chars = np.load(path)
 
