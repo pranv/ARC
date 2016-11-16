@@ -1,17 +1,18 @@
 import argparse
 parser = argparse.ArgumentParser(description="Command Line Interface for Setting HyperParameter Values")
 parser.add_argument("-n", "--expt-name", type=str, default="a_o_test", help="experiment name for logging purposes")
-parser.add_argument("-l", "--learning-rate", type=float, default=1e-5, help="global leaning rate")
+parser.add_argument("-l", "--learning-rate", type=float, default=3e-5, help="global leaning rate")
 parser.add_argument("-i", "--image-size", type=int, default=32, help="size of the square input image (side)")
-parser.add_argument("-a", "--attn-win", type=int, default=4, help="size of square attention window (side)")
+parser.add_argument("-w", "--attn-win", type=int, default=4, help="size of square attention window (side)")
 parser.add_argument("-s", "--lstm-states", type=int, default=512, help="number of LSTM controller states")
-parser.add_argument("-g", "--glimpses", type=int, default=10, help="number of glimpses per image")
-parser.add_argument("-f", "--fg-bias", type=float, default=0.30, help="initial bias of the forget gate of LSTM controller")
+parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of glimpses per image")
+parser.add_argument("-f", "--fg-bias", type=float, default=0.2, help="initial bias of the forget gate of LSTM controller")
 parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
 parser.add_argument("-m", "--max-iter", type=int, default=300000, help="number of iteration to train the net for")
 parser.add_argument("-p", "--dropout", type=float, default=0.2, help="dropout on the input")
 parser.add_argument("-u", "--hyp-tuning", action="store_true", help="add conditional terminations while tuning params")
+parser.add_argument("-a", "--within-alphabet", action="store_true", help="select only the character pairs that within the alphabet ")
 
 meta_data = vars(parser.parse_args())
 
@@ -28,6 +29,7 @@ fg_bias = meta_data["fg_bias"]
 batch_size = meta_data["batch_size"]
 dropout = meta_data["dropout"]
 N_ITER_MAX = meta_data["max_iter"]
+within_alphabet = meta_data["within_alphabet"]
 
 data_split = [30, 10]
 val_freq = 1000
@@ -85,7 +87,7 @@ train_fn = theano.function([X, y], outputs=loss, updates=updates)
 val_fn = theano.function([X, y], outputs=[loss, accuracy])
 
 print "... loading dataset"
-worker = Omniglot(img_size=image_size, data_split=data_split)
+worker = Omniglot(image_size=image_size, data_split=data_split, within_alphabet=within_alphabet)
 
 print "... begin training"
 meta_data["training_loss"] = []
@@ -110,7 +112,7 @@ try:
 		meta_data["training_loss"].append((iter_n, batch_loss))
 
 		smooth_loss = 0.99 * smooth_loss + 0.01 * batch_loss
-		print "iteration: ", iter_n, " | ", np.round((tock - tick), 3) * 1000, "ms", " | training loss: ", np.round(smooth_loss, 3)
+		print "iteration: ", iter_n, " | ", np.round((tock - tick), 3) * 1000, "ms", " | training loss: ", np.round(smooth_loss, 5)
 		
 		if np.isnan(batch_loss):
 			print "... NaN Detected, terminating"

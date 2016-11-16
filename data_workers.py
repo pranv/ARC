@@ -6,22 +6,23 @@ import theano
 
 from scipy.misc import imresize as resize
 
+from image_augmenter import ImageAugmenter
+
 
 class Omniglot(object):
-	def __init__(self, path='data/omniglot.npy', img_size=32, data_split=[30, 10]):
+	def __init__(self, path='data/omniglot.npy', image_size=32, data_split=[30, 10], 
+		within_alphabet=False, flip=True, scale=1.2, rotation_deg=20, shear_deg=10,
+                 translation_px=3):
 		chars = np.load(path)
-		chars = chars.astype(theano.config.floatX)
-		chars /= 255.0
 
 		# resize the images
-		resized_chars = np.zeros((1623, 20, img_size, img_size))
+		resized_chars = np.zeros((1623, 20, image_size, image_size))
 		for i in range(1623):
 			for j in range(20):
-				resized_chars[i, j] = resize(chars[i, j], (img_size, img_size))
+				resized_chars[i, j] = resize(chars[i, j], (image_size, image_size))
 		chars = resized_chars
 
-		# mean subtraction
-		chars -= chars.mean()
+		self.mean_pixel = chars.mean() 	# mean subtraction
 
 		# starting index (char) of each alphabet
 		a_start = [0, 20, 49, 75, 116, 156, 180, 226, 240, 266, 300, 333, 355, 381,
@@ -54,11 +55,18 @@ class Omniglot(object):
 		p = {}
 		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
 
+		# NOTE: here flipping both the images in a pair
+		self.augmentor = ImageAugmenter(image_size, image_size,
+                 hflip=flip, vflip=flip,
+                 scale_to_percent=scale, rotation_deg=rotation_deg, shear_deg=shear_deg,
+                 translation_x_px=translation_px, translation_y_px=translation_px)
+
 		self.data = chars
 		self.starts = starts
 		self.sizes = sizes
 		self.p = p
-		self.img_size = img_size
+		self.image_size = image_size
+		self.within_alphabet = within_alphabet
 
 	def fetch_verif_batch(self, batch_size, part='train'):
 		"""
@@ -82,26 +90,42 @@ class Omniglot(object):
 		starts = self.starts[part]
 		sizes = self.sizes[part]
 		p = self.p[part]
-		img_size = self.img_size
+		image_size = self.image_size
+		within_alphabet = self.within_alphabet
 
 		num_alphbts = len(starts)
 
-		X = np.zeros((2 * batch_size, img_size, img_size), dtype=theano.config.floatX)
+		X = np.zeros((2 * batch_size, image_size, image_size), dtype=theano.config.floatX)
 		for i in range(batch_size/2):
 			# sampling dissimilar pairs
-			alphbt_idx = choice(num_alphbts, p=p)			# select a alphabet
-			char_offset = choice(sizes[alphbt_idx], 2, replace=False)	# select 2 distinct chars, by selecting its offset within the alphabet
-			char_idxs = starts[alphbt_idx] + char_offset		# calculate char index	
+			if within_alphabet:
+				alphbt_idx = choice(num_alphbts, p=p)			# select a alphabet
+				char_offset = choice(sizes[alphbt_idx], 2, replace=False)	# select 2 distinct chars, by selecting its offset within the alphabet
+				char_idxs = starts[alphbt_idx] + char_offset		# calculate char index	
+			else:
+				char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 2, replace=False)		# calculate char index	
+			
 			X[i], X[i+batch_size] = data[char_idxs, choice(20, 2, replace=False)] # choose 2 drawers
 
 			# sampling similar pairs
-			alphbt_idx = choice(num_alphbts, p=p)			# select an alphabet
-			char_offset = choice(sizes[alphbt_idx]) 	# select a char, by selecting its offset within the alphabet
-			char_idx = starts[alphbt_idx] + char_offset	# calculate char index
+			if within_alphabet:
+				alphbt_idx = choice(num_alphbts, p=p)			# select an alphabet
+				char_offset = choice(sizes[alphbt_idx]) 	# select a char, by selecting its offset within the alphabet
+				char_idx = starts[alphbt_idx] + char_offset	# calculate char index
+			else:
+				char_idx = choice(range(starts[0], starts[-1] + sizes[-1]))		# calculate char index	
+			
 			X[i+batch_size/2], X[i+3*batch_size/2] = data[char_idx, choice(20, 2, replace=False)] # choose 2 drawers
 
 		y = np.zeros((batch_size, 1), dtype='int32')
 		y[:batch_size/2] = 0
 		y[batch_size/2:] = 1
+
+		if part == 'train':
+			X = self.augmentor.augment_batch(X.astype('uint8'))
+
+		X = X.astype(theano.config.floatX)
+		X -= self.mean_pixel
+		X /= 255.0
 
 		return X, y
