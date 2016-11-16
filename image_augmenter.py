@@ -14,7 +14,6 @@ Example usage:
                             translation_x_px=5)
         augmented_images = ia.augment_batch(images)
 """
-from __future__ import division
 from skimage import transform as tf
 import numpy as np
 import random
@@ -590,7 +589,7 @@ class ImageAugmenter(object):
 
             y_p = self.hflip_prob
             x_p = self.vflip_prob
-            batch_size = int(images.shape[0] // 2)
+            batch_size = images.shape[0] / 2
             for i in range(batch_size):
                 if y_p > 0 and random.random() < y_p:
                     images_flipped[i] = np.fliplr(images_flipped[i])
