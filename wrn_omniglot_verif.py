@@ -108,6 +108,9 @@ dense_layer = DenseLayer(avg_pool, num_units=128, W=HeNormal(), nonlinearity=rec
 dist_layer = ExpressionLayer(dense_layer, lambda I: T.abs_(I[:I.shape[0]/2] - I[I.shape[0]/2:]), output_shape='auto')
 l_y = DenseLayer(dist_layer, num_units=1, nonlinearity=sigmoid)
 
+meta_data["num_param"] = lasagne.layers.count_params(l_y)
+print "number of parameters: ", meta_data["num_param"]
+
 prediction = get_output(l_y)
 prediction_clean = get_output(l_y, deterministic=True)
 
@@ -120,9 +123,6 @@ loss = loss + l2_penalty
 
 params = get_all_params(l_y, trainable=True)
 updates = adam(loss, params, learning_rate=learning_rate)
-
-meta_data["num_param"] = lasagne.layers.count_params(l_y)
-print "number of parameters: ", meta_data["num_param"]
 
 print "... compiling"
 train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
