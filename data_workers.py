@@ -11,8 +11,8 @@ from image_augmenter import ImageAugmenter
 
 class Omniglot(object):
 	def __init__(self, path='data/omniglot.npy', image_size=32, data_split=[30, 10], 
-		within_alphabet=False, flip=True, scale=1.1, rotation_deg=10, shear_deg=5,
-                 translation_px=3):
+		within_alphabet=False, flip=True, scale=1.2, rotation_deg=20, shear_deg=10,
+                 translation_px=5):
 		chars = np.load(path)
 
 		# resize the images
@@ -22,7 +22,7 @@ class Omniglot(object):
 				resized_chars[i, j] = resize(chars[i, j], (image_size, image_size))
 		chars = resized_chars
 
-		self.mean_pixel = chars.mean() 	# mean subtraction
+		self.mean_pixel = chars.mean() / 255.0	# mean subtraction
 
 		# starting index (char) of each alphabet
 		a_start = [0, 20, 49, 75, 116, 156, 180, 226, 240, 266, 300, 333, 355, 381,
@@ -123,9 +123,10 @@ class Omniglot(object):
 
 		if part == 'train':
 			X = self.augmentor.augment_batch(X.astype('uint8'))
-
-		X = X.astype(theano.config.floatX)
+		else:
+			X /= 255.0
+		
 		X -= self.mean_pixel
-		X /= 255.0
+		X = X.astype(theano.config.floatX)
 
 		return X, y
