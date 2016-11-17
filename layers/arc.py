@@ -42,7 +42,7 @@ class ARC(lasagne.layers.Layer):
 		attn_win = self.attn_win
 		image_size = self.image_size
 
-		gp = T.tanh(T.dot(W, H.T).T)
+		gp = T.dot(W, H.T).T
 
 		center_y = gp[:, 0].dimshuffle(0, 'x')
 		center_x = gp[:, 1].dimshuffle(0, 'x')
@@ -102,9 +102,6 @@ class ARC(lasagne.layers.Layer):
 			# all in (states, B)
 			c_t = f * c_tm1.T + i * z
 			h_t = o * T.tanh(c_t)
-
-			#c_t = T.clip(c_t, -1.0, 1.0)
-			#h_t = T.clip(h_t, -1.0, 1.0)
 
 			# output (B, states)
 			return glimpse_count + 1, c_t.T, h_t.T
