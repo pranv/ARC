@@ -70,6 +70,9 @@ l_arc = ARC(l_noise, lstm_states=lstm_states, image_size=image_size, attn_win=at
 					glimpses=glimpses, fg_bias_init=fg_bias)
 l_y = DenseLayer(l_arc, 1, nonlinearity=sigmoid)
 
+meta_data["num_param"] = lasagne.layers.count_params(l_y)
+print "number of parameters: ", meta_data["num_param"]
+
 prediction = get_output(l_y)
 prediction_clean = get_output(l_y, deterministic=True)
 
@@ -78,9 +81,6 @@ accuracy = T.mean(T.eq(prediction_clean > 0.5, y), dtype=theano.config.floatX)
 
 params = get_all_params(l_y)
 updates = adam(loss, params, learning_rate=learning_rate)
-
-meta_data["num_param"] = lasagne.layers.count_params(l_y)
-print "number of parameters: ", meta_data["num_param"]
 
 print "... compiling"
 train_fn = theano.function([X, y], outputs=loss, updates=updates)
