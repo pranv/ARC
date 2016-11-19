@@ -3,7 +3,7 @@ parser = argparse.ArgumentParser(description="Command Line Interface for Setting
 parser.add_argument("-n", "--expt-name", type=str, default="a_o_test", help="experiment name for logging purposes")
 parser.add_argument("-l", "--learning-rate", type=float, default=3e-5, help="global leaning rate")
 parser.add_argument("-i", "--image-size", type=int, default=32, help="size of the square input image (side)")
-parser.add_argument("-w", "--attn-win", type=int, default=4, help="size of square attention window (side)")
+parser.add_argument("-w", "--attn-win", type=int, default=6, help="size of square attention window (side)")
 parser.add_argument("-s", "--lstm-states", type=int, default=512, help="number of LSTM controller states")
 parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of glimpses per image")
 parser.add_argument("-f", "--fg-bias", type=float, default=0.2, help="initial bias of the forget gate of LSTM controller")
