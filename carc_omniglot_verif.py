@@ -36,7 +36,7 @@ wrn_k = meta_data["width"]
 
 data_split = [30, 10]
 val_freq = 1000
-val_num_batches = 500
+val_num_batches = 300
 test_num_batches = 2000
 
 

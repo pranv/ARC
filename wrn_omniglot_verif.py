@@ -26,7 +26,7 @@ within_alphabet = meta_data["within_alphabet"]
 
 data_split = [30, 10]
 val_freq = 1000
-val_num_batches = 500
+val_num_batches = 300
 test_num_batches = 2000
 
 print "... importing libraries"
