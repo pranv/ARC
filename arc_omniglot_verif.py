@@ -9,8 +9,8 @@ parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of gli
 parser.add_argument("-f", "--fg-bias", type=float, default=0.2, help="initial bias of the forget gate of LSTM controller")
 parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
-parser.add_argument("-m", "--max-iter", type=int, default=300000, help="number of iteration to train the net for")
-parser.add_argument("-p", "--dropout", type=float, default=0.2, help="dropout on the input")
+parser.add_argument("-m", "--max-iter", type=int, default=1000000, help="number of iteration to train the net for")
+parser.add_argument("-p", "--dropout", type=float, default=0.3, help="dropout on the input")
 parser.add_argument("-u", "--hyp-tuning", action="store_true", help="add conditional terminations while tuning params")
 parser.add_argument("-a", "--within-alphabet", action="store_true", help="select only the character pairs that within the alphabet ")
 
