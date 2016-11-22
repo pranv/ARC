@@ -33,7 +33,7 @@ parser.add_argument("-f", "--fg-bias-init", type=float, default=0.2, help="initi
 parser.add_argument("-a", "--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
 parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch size")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
-parser.add_argument("-u", "--n-iter", type=int, default=100000, help="number of iterations")
+parser.add_argument("-u", "--n-iter", type=int, default=1000000, help="number of iterations")
 
 parser.add_argument("-p", "--dropout", type=float, default=0.2, help="dropout on the input")
 

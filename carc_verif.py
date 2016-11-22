@@ -58,18 +58,18 @@ parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameter
 parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
 parser.add_argument("-s", "--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
-parser.add_argument("-l", "--learning-rate", type=float, default=1e-5, help="learning rate")
+parser.add_argument("-l", "--learning-rate", type=float, default=2e-5, help="learning rate")
 parser.add_argument("-i", "--image-size", type=int, default=32, help="side length of the square input image")
 
 parser.add_argument("-w", "--attn-win", type=int, default=4, help="side length of square attention window")
-parser.add_argument("-c", "--lstm-states", type=int, default=512, help="number of LSTM controller states")
+parser.add_argument("-c", "--lstm-states", type=int, default=256, help="number of LSTM controller states")
 parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of glimpses per image")
 parser.add_argument("-f", "--fg-bias-init", type=float, default=0.2, help="initial bias for the forget gate of LSTM controller")
 
 parser.add_argument("-a", "--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
 parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch size")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
-parser.add_argument("-u", "--n-iter", type=int, default=100000, help="number of iterations")
+parser.add_argument("-u", "--n-iter", type=int, default=200000, help="number of iterations")
 
 parser.add_argument("-p", "--dropout", type=float, default=0.2, help="dropout on the input")
 
