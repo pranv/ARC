@@ -20,11 +20,13 @@ import argparse
 
 parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameters")
 parser.add_argument("-n", "--expt-name", type=str, help="experiment name(for logging purposes)")
+parser.add_argument("-s", "--dataset", type=str, default="omniglot", help="omniglot/LFW")
+
 parser.add_argument("-l", "--learning-rate", type=float, default=1e-5, help="learning rate")
 parser.add_argument("-i", "--image-size", type=int, default=32, help="side length of the square input image")
 
 parser.add_argument("-w", "--attn-win", type=int, default=4, help="side length of square attention window")
-parser.add_argument("-s", "--lstm-states", type=int, default=512, help="number of LSTM controller states")
+parser.add_argument("-c", "--lstm-states", type=int, default=512, help="number of LSTM controller states")
 parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of glimpses per image")
 parser.add_argument("-f", "--fg-bias-init", type=float, default=0.2, help="initial bias for the forget gate of LSTM controller")
 
@@ -39,9 +41,8 @@ meta_data = vars(parser.parse_args())
 
 for md in meta_data.keys():
 	print md, meta_data[md]
-meta_data["expt_name"] = "ARC_VERIF_" + meta_data["expt_name"]
 
-expt_name = meta_data["expt_name"]
+meta_data["expt_name"] = "ARC_VERIF_" + meta_data["dataset"] + meta_data["expt_name"]
 learning_rate = meta_data["learning_rate"]
 image_size = meta_data["image_size"]
 attn_win = meta_data["attn_win"]
