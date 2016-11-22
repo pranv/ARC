@@ -10,15 +10,15 @@ from image_augmenter import ImageAugmenter
 
 
 class Omniglot(object):
-	def __init__(self, path='data/omniglot.npy', image_size=32, data_split=[30, 10], 
+	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32, data_split=[30, 10], 
 		within_alphabet=False, flip=True, scale=1.2, rotation_deg=20, shear_deg=10,
                  translation_px=5):
 		chars = np.load(path)
 
 		# resize the images
 		resized_chars = np.zeros((1623, 20, image_size, image_size))
-		for i in range(1623):
-			for j in range(20):
+		for i in xrange(1623):
+			for j in xrange(20):
 				resized_chars[i, j] = resize(chars[i, j], (image_size, image_size))
 		chars = resized_chars
 
@@ -67,8 +67,9 @@ class Omniglot(object):
 		self.p = p
 		self.image_size = image_size
 		self.within_alphabet = within_alphabet
+		self.batch_size = batch_size
 
-	def fetch_verif_batch(self, batch_size, part='train'):
+	def fetch_verif_batch(self, part='train'):
 		"""
 			This outputs batch_size number of pairs
 			Thus the actual number of images outputted is 2 * batch_size
@@ -92,11 +93,12 @@ class Omniglot(object):
 		p = self.p[part]
 		image_size = self.image_size
 		within_alphabet = self.within_alphabet
+		batch_size = self.batch_size
 
 		num_alphbts = len(starts)
 
 		X = np.zeros((2 * batch_size, image_size, image_size), dtype=theano.config.floatX)
-		for i in range(batch_size/2):
+		for i in xrange(batch_size/2):
 			# sampling dissimilar pairs
 			if within_alphabet:
 				alphbt_idx = choice(num_alphbts, p=p)			# select a alphabet
@@ -130,3 +132,16 @@ class Omniglot(object):
 		X = X.astype(theano.config.floatX)
 
 		return X, y
+
+	def fetch_o_s_batch(self, part='train'):
+		pass
+
+
+class OmniglotVerif(Omniglot):
+	def fetch_batch(self, part):
+		return self.fetch_verif_batch(part)
+
+
+class OmniglotOS(Omniglot):
+	def fetch_batch(self, part):
+		return self.fetch_o_s_batch(part)
