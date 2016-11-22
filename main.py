@@ -11,12 +11,10 @@ import cPickle
 
 
 def train(train_fn, val_fn, worker, meta_data, get_params):
-	expt_name = meta_data["expt_name"]
 	n_iter = meta_data["n_iter"]
 	val_freq = 1000
 	val_num_batches = 250
 	
-
 	meta_data["training_loss"] = []
 	meta_data["validation_loss"] = []
 	meta_data["validation_accuracy"] = []
@@ -99,14 +97,14 @@ def test(test_fn, worker, meta_data):
 
 
 def save(meta_data, params):
-	print "... serializing parameters"
-	log_p = gzip.open("results/" + meta_data["expt_name"] + ".params", "wb")
-	cPickle.dump(params, log_p)
-	log_p.close()
+	print "... serializing parameters" 
+	with gzip.open("results/" + meta_data["expt_name"] + ".params", "wb") as log_p:
+		cPickle.dump(params, log_p)
+		log_p.close()
 
 	print "... serializing metadata"
-	log_md = gzip.open("results/" + meta_data["expt_name"] + ".mtd", "wb")
-	cPickle.dump(meta_data, log_md)
-	log_md.close()
+	with gzip.open("results/" + meta_data["expt_name"] + ".mtd", "wb") as log_md:
+		cPickle.dump(meta_data, log_md)
+		log_md.close()
 
 	return
