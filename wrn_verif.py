@@ -63,8 +63,8 @@ parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch siz
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
 parser.add_argument("-u", "--n-iter", type=int, default=100000, help="number of iterations")
 
-parser.add_argument("-d", "--wrn-depth", type=int, default=4, help="the resnet has depth equal to 6d+2")
-parser.add_argument("-k", "--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
+parser.add_argument("-d", "--wrn-depth", type=int, default=8, help="the resnet has depth equal to 6d+12")
+parser.add_argument("-k", "--wrn-width", type=int, default=4, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "WRN_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]

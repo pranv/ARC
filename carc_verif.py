@@ -73,7 +73,7 @@ parser.add_argument("-u", "--n-iter", type=int, default=200000, help="number of 
 
 parser.add_argument("-p", "--dropout", type=float, default=0.2, help="dropout on the input")
 
-parser.add_argument("-d", "--wrn-depth", type=int, default=4, help="the resnet has depth equal to 6d+2")
+parser.add_argument("-d", "--wrn-depth", type=int, default=4, help="the resnet has depth equal to 4d+7")
 parser.add_argument("-k", "--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
@@ -104,16 +104,16 @@ y = T.imatrix("target")
 
 l_in = InputLayer(shape=(None, 1, image_size, image_size), input_var=X)
 
-# first layer, output is 16 x 32 x 32
+# first layer, output is 16 x 32 x 32 | (1)
 l = batch_norm(ConvLayer(l_in, num_filters=n_filters[0], filter_size=(3, 3), \
 	stride=(1, 1), nonlinearity=rectify, pad='same', W=HeNormal(gain='relu')))
 
-# first stack of residual blocks, output is (16 * wrn_k) x 32 x 32
+# first stack of residual blocks, output is (16 * wrn_k) x 32 x 32 | (3 + 2 * (n - 1))
 l = residual_block(l, first=True, filters=n_filters[1])
 for _ in range(1, wrn_n):
 	l = residual_block(l, filters=n_filters[1])
 
-# second stack of residual blocks, output is (32 * wrn_k) x 16 x 16
+# second stack of residual blocks, output is (32 * wrn_k) x 16 x 16 | (3 + 2 * (n + 1))
 l = residual_block(l, increase_dim=True, filters=n_filters[2])
 for _ in range(1, (wrn_n+2)):
 	l = residual_block(l, filters=n_filters[2])
