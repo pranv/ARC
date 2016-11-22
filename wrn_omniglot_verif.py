@@ -5,10 +5,10 @@ parser.add_argument("-l", "--learning-rate", type=float, default=1e-3, help="glo
 parser.add_argument("-i", "--image-size", type=int, default=32, help="size of the square input image (side)")
 parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
-parser.add_argument("-m", "--max-iter", type=int, default=100000, help="number of iteration to train the net for")
+parser.add_argument("-u", "--n-iter", type=int, default=100000, help="number of iteration to train the net for")
 parser.add_argument("-d", "--depth", type=int, default=8, help="the resnet has depth equal to 6d+2")
 parser.add_argument("-k", "--width", type=int, default=4, help="width multiplier for each WRN block")
-parser.add_argument("-a", "--within-alphabet", action="store_true", help="select only the character pairs that within the alphabet ")
+parser.add_argument("-a", "--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
 
 meta_data = vars(parser.parse_args())
 
@@ -19,7 +19,7 @@ expt_name = meta_data["expt_name"]
 learning_rate = meta_data["learning_rate"]
 image_size = meta_data["image_size"]
 batch_size = meta_data["batch_size"]
-N_ITER_MAX = meta_data["max_iter"]
+n_iter = meta_data["n_iter"]
 wrn_n = meta_data["depth"]
 wrn_k = meta_data["width"]
 within_alphabet = meta_data["within_alphabet"]
@@ -144,7 +144,7 @@ best_params = helper.get_all_param_values(l_y)
 
 smooth_loss = 0.6932
 try:
-	while iter_n < N_ITER_MAX:
+	while iter_n < n_iter:
 		iter_n += 1
 
 		tick = time.clock()

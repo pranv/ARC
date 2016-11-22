@@ -5,12 +5,11 @@ parser.add_argument("-l", "--learning-rate", type=float, default=1e-4, help="glo
 parser.add_argument("-i", "--image-size", type=int, default=32, help="size of the square input image (side)")
 parser.add_argument("-w", "--attn-win", type=int, default=4, help="size of square attention window (side)")
 parser.add_argument("-s", "--lstm-states", type=int, default=256, help="number of LSTM controller states")
-parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of glimpses per image")
-parser.add_argument("-f", "--fg-bias", type=float, default=0.2, help="initial bias of the forget gate of LSTM controller")
+parser.add_argument("-g", "--glimpses", type=int, default=4, help="number of glimpses per image")
+parser.add_argument("-f", "--fg-bias", type=float, default=0.0, help="initial bias of the forget gate of LSTM controller")
 parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch size for training")
 parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
-parser.add_argument("-m", "--max-iter", type=int, default=1000000, help="number of iteration to train the net for")
-parser.add_argument("-u", "--hyp-tuning", action="store_true", help="add conditional terminations while tuning params")
+parser.add_argument("-u", "--n-iter", type=int, default=1000000, help="number of iteration to train the net for")
 parser.add_argument("-d", "--depth", type=int, default=4, help="the resnet has depth equal to 6d+2")
 parser.add_argument("-k", "--width", type=int, default=2, help="width multiplier for each WRN block")
 parser.add_argument("-a", "--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
@@ -28,7 +27,7 @@ glimpses = meta_data["glimpses"]
 lstm_states = meta_data["lstm_states"]
 fg_bias = meta_data["fg_bias"]
 batch_size = meta_data["batch_size"]
-N_ITER_MAX = meta_data["max_iter"]
+n_iter = meta_data["n_iter"]
 within_alphabet = meta_data["within_alphabet"]
 
 wrn_n = meta_data["depth"]
@@ -164,7 +163,7 @@ best_params = helper.get_all_param_values(l_y)
 
 smooth_loss = 0.6932
 try:
-	while iter_n < N_ITER_MAX:
+	while iter_n < n_iter:
 		iter_n += 1
 
 		tick = time.clock()
@@ -180,32 +179,6 @@ try:
 		if np.isnan(batch_loss):
 			print "... NaN Detected, terminating"
 			break
-
-		if meta_data['hyp_tuning']:
-			if smooth_loss > 0.3 and iter_n > 80000:
-				print "... poor performace, terminating"
-				break
-
-			if smooth_loss > 0.4 and iter_n > 40000:
-				print "... poor performace, terminating"
-				break
-
-			if smooth_loss > 0.5 and iter_n > 20000:
-				print "... poor performace, terminating"
-				break
-
-			if smooth_loss > 0.6 and iter_n > 10000:
-				print "... poor performace, terminating"
-				break
-
-			if smooth_loss > 0.65 and iter_n > 5000:
-				print "... poor performace, terminating"
-				break
-
-			if smooth_loss > 0.69 and iter_n > 2500:
-				print "... poor performace, terminating"
-				break
-
 
 		if iter_n % val_freq == 0:
 			net_val_loss, net_val_acc = 0.0, 0.0
