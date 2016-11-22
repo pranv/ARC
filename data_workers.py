@@ -10,9 +10,27 @@ from image_augmenter import ImageAugmenter
 
 
 class Omniglot(object):
-	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32, data_split=[30, 10], 
-		within_alphabet=False, flip=True, scale=1.2, rotation_deg=20, shear_deg=10,
-                 translation_px=5):
+	def __init__(self, path='data/omniglot.npy', shape=3, batch_size=128, image_size=32, \
+		data_split=[30, 10], within_alphabet=False, flip=True, scale=1.2, \
+		rotation_deg=20, shear_deg=10, translation_px=5):
+		"""
+		path: path to omniglot.npy file produced by data/setup_omniglot.py script
+		shape: should be either 3 or 4, specifies the X's tensor format (4D required for Conv)
+		batch_size: global batch size
+		image_size
+		data_split: in number of alphabets, e.g. [30, 10] means out of 50 Omniglot characters, 
+					30 is for training, 10 for validation and the remaining(10) for testing
+		within_alphabet: for verfication task, when 2 characters are sampled to form a pair, 
+							should they be from the same alphabet (language)? (True, False)
+		---------------------
+		Data Augmentation Parameters:
+			flip
+			scale
+			rotation_deg
+			shear_deg
+			translation_px
+		"""
+		
 		chars = np.load(path)
 
 		# resize the images
@@ -67,6 +85,7 @@ class Omniglot(object):
 		self.p = p
 		self.image_size = image_size
 		self.within_alphabet = within_alphabet
+		self.shape = shape
 		self.batch_size = batch_size
 
 	def fetch_verif_batch(self, part='train'):
@@ -131,7 +150,10 @@ class Omniglot(object):
 		X -= self.mean_pixel
 		X = X.astype(theano.config.floatX)
 
-		return X, y
+		if self.shape == 4:
+			return X.reshape(2 * batch_size, 1, image_size, image_size), y
+		else:
+			return X, y
 
 	def fetch_o_s_batch(self, part='train'):
 		pass
