@@ -42,7 +42,7 @@ class ConvARC(lasagne.layers.Layer):
 		image_size = self.image_size
 		num_filters = self.num_filters
 
-		gp = T.tanh(T.dot(W, H.T).T)
+		gp = T.dot(W, H.T).T
 
 		center_y = gp[:, 0].dimshuffle(0, 'x')
 		center_x = gp[:, 1].dimshuffle(0, 'x')
