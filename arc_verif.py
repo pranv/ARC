@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameter
 parser.add_argument("-n", "--expt-name", type=str, help="experiment name(for logging purposes)")
 parser.add_argument("-s", "--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
-parser.add_argument("-l", "--learning-rate", type=float, default=1e-5, help="learning rate")
+parser.add_argument("-l", "--learning-rate", type=float, default=2e-5, help="learning rate")
 parser.add_argument("-i", "--image-size", type=int, default=32, help="side length of the square input image")
 
 parser.add_argument("-w", "--attn-win", type=int, default=4, help="side length of square attention window")
