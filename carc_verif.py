@@ -56,25 +56,25 @@ def residual_block(l, increase_dim=False, projection=True, first=False, filters=
 
 parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameters")
 parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
-parser.add_argument("-s", "--dataset", type=str, default="omniglot", help="omniglot/LFW")
+parser.add_argument("--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
-parser.add_argument("-l", "--learning-rate", type=float, default=2e-5, help="learning rate")
-parser.add_argument("-i", "--image-size", type=int, default=32, help="side length of the square input image")
+parser.add_argument("--learning-rate", type=float, default=2e-5, help="learning rate")
+parser.add_argument("--image-size", type=int, default=32, help="side length of the square input image")
 
-parser.add_argument("-w", "--attn-win", type=int, default=4, help="side length of square attention window")
-parser.add_argument("-c", "--lstm-states", type=int, default=256, help="number of LSTM controller states")
-parser.add_argument("-g", "--glimpses", type=int, default=8, help="number of glimpses per image")
-parser.add_argument("-f", "--fg-bias-init", type=float, default=0.2, help="initial bias for the forget gate of LSTM controller")
+parser.add_argument("--attn-win", type=int, default=4, help="side length of square attention window")
+parser.add_argument("--lstm-states", type=int, default=256, help="number of LSTM controller states")
+parser.add_argument("--glimpses", type=int, default=8, help="number of glimpses per image")
+parser.add_argument("--fg-bias-init", type=float, default=0.2, help="initial bias for the forget gate of LSTM controller")
 
-parser.add_argument("-a", "--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
-parser.add_argument("-b", "--batch-size", type=int, default=128, help="batch size")
-parser.add_argument("-t", "--testing", action="store_true", help="report test set results")
-parser.add_argument("-u", "--n-iter", type=int, default=200000, help="number of iterations")
+parser.add_argument("--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
+parser.add_argument("--batch-size", type=int, default=128, help="batch size")
+parser.add_argument("--testing", action="store_true", help="report test set results")
+parser.add_argument("--n-iter", type=int, default=200000, help="number of iterations")
 
-parser.add_argument("-p", "--dropout", type=float, default=0.2, help="dropout on the input")
+parser.add_argument("--dropout", type=float, default=0.2, help="dropout on the input")
 
-parser.add_argument("-d", "--wrn-depth", type=int, default=4, help="the resnet has depth equal to 4d+7")
-parser.add_argument("-k", "--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
+parser.add_argument("--wrn-depth", type=int, default=4, help="the resnet has depth equal to 4d+7")
+parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "ConvARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
