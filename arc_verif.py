@@ -38,11 +38,11 @@ parser.add_argument("-u", "--n-iter", type=int, default=100000, help="number of 
 parser.add_argument("-p", "--dropout", type=float, default=0.2, help="dropout on the input")
 
 meta_data = vars(parser.parse_args())
+meta_data["expt_name"] = "ARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
 
-meta_data["expt_name"] = "ARC_VERIF_" + meta_data["dataset"] + meta_data["expt_name"]
 learning_rate = meta_data["learning_rate"]
 image_size = meta_data["image_size"]
 attn_win = meta_data["attn_win"]
@@ -83,8 +83,9 @@ train_fn = theano.function([X, y], outputs=loss, updates=updates)
 val_fn = theano.function([X, y], outputs=[loss, accuracy])
 
 print "... loading dataset"
-worker = OmniglotVerif(image_size=image_size, shape=3, batch_size=batch_size, \
-	data_split=data_split, within_alphabet=within_alphabet)
+if meta_data["dataset"] == "omniglot":
+	worker = OmniglotVerif(image_size=image_size, shape=3, batch_size=batch_size, \
+		data_split=data_split, within_alphabet=within_alphabet)
 
 meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \
 	get_params=lambda: helper.get_all_param_values(l_y))

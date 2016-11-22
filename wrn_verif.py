@@ -55,7 +55,7 @@ parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameter
 parser.add_argument("-n", "--expt-name", type=str, help="experiment name(for logging purposes)")
 parser.add_argument("-s", "--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
-parser.add_argument("-l", "--learning-rate", type=float, default=1e-5, help="learning rate")
+parser.add_argument("-l", "--learning-rate", type=float, default=1e-3, help="learning rate")
 parser.add_argument("-i", "--image-size", type=int, default=32, help="side length of the square input image")
 
 parser.add_argument("-a", "--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
@@ -67,11 +67,11 @@ parser.add_argument("-d", "--depth", type=int, default=8, help="the resnet has d
 parser.add_argument("-k", "--width", type=int, default=4, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
+meta_data["expt_name"] = "WRN_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
 
-meta_data["expt_name"] = "WRN_VERIF_" + meta_data["dataset"] + meta_data["expt_name"]
 learning_rate = meta_data["learning_rate"]
 image_size = meta_data["image_size"]
 batch_size = meta_data["batch_size"]
@@ -130,8 +130,9 @@ train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
 val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 
 print "... loading dataset"
-worker = OmniglotVerif(image_size=image_size, shape=4, batch_size=batch_size, \
-	data_split=data_split, within_alphabet=within_alphabet)
+if meta_data["dataset"] == "omniglot":
+	worker = OmniglotVerif(image_size=image_size, shape=4, batch_size=batch_size, \
+		data_split=data_split, within_alphabet=within_alphabet)
 
 meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \
 	get_params=lambda: helper.get_all_param_values(l_y))
