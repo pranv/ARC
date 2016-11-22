@@ -11,9 +11,9 @@ Models that have the capacity of recognizing the subtle similarities or differen
     * [Lasagne](http://lasagne.readthedocs.io/en/latest/index.html) `pip install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip`
 
 2. Download this repository and prepare the data. Running the following scripts will download, preprocess and store the dataset on the disk for use during training. From the home directory of the repo:
-  * To prepare Omniglot dataset: `python data/setup_omniglot.py`
-  * To prepare LFW dataset: `python data/setup_lfw.py`
+  * To prepare Omniglot dataset: `cd data; python setup_omniglot.py; cd ..;`
+  * To prepare LFW dataset: `cd data; python setup_lfw.py; cd ..;`
 
 3. Train the networks. The following code segments train the models with the default hyper-parameters. The hyper-paramters can however be changed by passing command line arguments. Refer to command line help for this by entering `python <script.py> -h`
-  * To train Binary ARC model from the paper on Omniglot Verfication task: `python arc_omniglot_verif.py`
-  * To train the 50 layer Wide ResNet baseline on Omniglot Verfication task: `python wrn_omniglot_verif.py`
+  * To train Binary ARC model from the paper on Omniglot Verfication task: `python arc_verif.py`
+  * To train the 50 layer Wide ResNet baseline on Omniglot Verfication task: `python wrn_verif.py`
