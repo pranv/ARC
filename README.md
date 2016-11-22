@@ -14,6 +14,7 @@ Models that have the capacity of recognizing the subtle similarities or differen
   * To prepare Omniglot dataset: `cd data; python setup_omniglot.py; cd ..;`
   * To prepare LFW dataset: `cd data; python setup_lfw.py; cd ..;`
 
-3. Train the networks. The following code segments train the models with the default hyper-parameters. The hyper-paramters can however be changed by passing command line arguments. Refer to command line help for this by entering `python <script.py> -h`
-  * To train Binary ARC model from the paper on Omniglot Verfication task: `python arc_verif.py`
-  * To train the 50 layer Wide ResNet baseline on Omniglot Verfication task: `python wrn_verif.py`
+3. Train the networks. Refer to command line help for specifying by entering `python <script.py> -h`
+  * To train Binary ARC model from the paper on Verfication task: `python arc_verif.py`
+  * To train Convolutional ARC model from the paper on Verfication task: `python carc_verif.py`
+  * To train the 50 layer Wide ResNet baseline on Verfication task: `python wrn_verif.py`

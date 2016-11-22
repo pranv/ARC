@@ -55,7 +55,7 @@ def residual_block(l, increase_dim=False, projection=True, first=False, filters=
 
 
 parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameters")
-parser.add_argument("-n", "--expt-name", type=str, help="experiment name(for logging purposes)")
+parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
 parser.add_argument("-s", "--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
 parser.add_argument("-l", "--learning-rate", type=float, default=1e-5, help="learning rate")
