@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameter
 parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
 parser.add_argument("--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
-parser.add_argument("--learning-rate", type=float, default=2e-5, help="learning rate")
+parser.add_argument("--learning-rate", type=float, default=5e-5, help="learning rate")
 parser.add_argument("--image-size", type=int, default=32, help="side length of the square input image")
 
 parser.add_argument("--attn-win", type=int, default=4, help="side length of square attention window")
@@ -35,7 +35,7 @@ parser.add_argument("--batch-size", type=int, default=128, help="batch size")
 parser.add_argument("--testing", action="store_true", help="report test set results")
 parser.add_argument("--n-iter", type=int, default=1000000, help="number of iterations")
 
-parser.add_argument("--dropout", type=float, default=0.2, help="dropout on the input")
+parser.add_argument("--dropout", type=float, default=0.3, help="dropout on the input")
 
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "ARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
