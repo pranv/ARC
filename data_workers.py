@@ -115,7 +115,7 @@ class Omniglot(object):
 
 		num_alphbts = len(starts)
 
-		X = np.zeros((2 * batch_size, 1, image_size, image_size), dtype=theano.config.floatX)
+		X = np.zeros((2 * batch_size, image_size, image_size), dtype=theano.config.floatX)
 		for i in xrange(batch_size/2):
 			# sampling dissimilar pairs
 			if within_alphabet:
@@ -148,6 +148,8 @@ class Omniglot(object):
 		
 		X -= self.mean_pixel
 		X = X.astype(theano.config.floatX)
+
+		X = X[:, np.newaxis]
 
 		return X, y
 
