@@ -14,6 +14,7 @@ def train(train_fn, val_fn, worker, meta_data, get_params):
 	n_iter = meta_data["n_iter"]
 	val_freq = 1000
 	val_num_batches = 250
+	patience = 0.1
 	
 	meta_data["training_loss"] = []
 	meta_data["validation_loss"] = []
@@ -65,6 +66,10 @@ def train(train_fn, val_fn, worker, meta_data, get_params):
 					best_val_loss = val_loss
 					best_iter_n = iter_n
 					best_params = get_params()
+
+				if val_loss > best_val_loss + patience:
+					break
+
 
 	except KeyboardInterrupt:
 		pass
