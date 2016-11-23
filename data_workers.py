@@ -10,7 +10,7 @@ from image_augmenter import ImageAugmenter
 
 
 class Omniglot(object):
-	def __init__(self, path='data/omniglot.npy', shape=3, batch_size=128, image_size=32, \
+	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32, \
 		data_split=[30, 10], within_alphabet=False, flip=True, scale=1.2, \
 		rotation_deg=20, shear_deg=10, translation_px=5):
 		"""
@@ -85,7 +85,6 @@ class Omniglot(object):
 		self.p = p
 		self.image_size = image_size
 		self.within_alphabet = within_alphabet
-		self.shape = shape
 		self.batch_size = batch_size
 
 	def fetch_verif_batch(self, part='train'):
@@ -150,10 +149,7 @@ class Omniglot(object):
 		X -= self.mean_pixel
 		X = X.astype(theano.config.floatX)
 
-		if self.shape == 4:
-			return X.reshape(2 * batch_size, 1, image_size, image_size), y
-		else:
-			return X, y
+		return X, y
 
 	def fetch_o_s_batch(self, part='train'):
 		pass
