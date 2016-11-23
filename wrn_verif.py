@@ -131,7 +131,7 @@ val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 
 print "... loading dataset"
 if meta_data["dataset"] == "omniglot":
-	worker = OmniglotVerif(image_size=image_size, shape=4, batch_size=batch_size, \
+	worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, \
 		data_split=data_split, within_alphabet=within_alphabet)
 
 meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \

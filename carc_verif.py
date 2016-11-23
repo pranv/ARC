@@ -16,7 +16,7 @@ from lasagne.objectives import binary_crossentropy
 from lasagne.updates import adam
 from lasagne.layers import helper
 
-from layers import ConvARC
+from layers import ConvARC3DA
 from data_workers import OmniglotVerif
 from main import train, test, save
 
@@ -121,7 +121,7 @@ for _ in range(1, (wrn_n+2)):
 bn_post_conv = BatchNormLayer(l)
 bn_post_relu = NonlinearityLayer(bn_post_conv, rectify)
 
-l_carc = ConvARC(bn_post_relu, num_filters=n_filters[2], lstm_states=lstm_states, image_size=16, 
+l_carc = ConvARC3DA(bn_post_relu, num_filters=n_filters[2], lstm_states=lstm_states, image_size=16, 
 					attn_win=attn_win, glimpses=glimpses, fg_bias_init=fg_bias_init)
 l_y = DenseLayer(l_carc, num_units=1, nonlinearity=sigmoid)
 
@@ -147,7 +147,7 @@ val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 
 print "... loading dataset"
 if meta_data["dataset"] == "omniglot":
-	worker = OmniglotVerif(image_size=image_size, shape=4, batch_size=batch_size, \
+	worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, \
 		data_split=data_split, within_alphabet=within_alphabet)
 
 meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \
