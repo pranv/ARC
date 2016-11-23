@@ -2,6 +2,7 @@ import numpy as np
 
 import theano
 import theano.tensor as T
+from theano.ifelse import ifelse
 
 import lasagne
 
@@ -94,8 +95,8 @@ class BaseARC(lasagne.layers.Layer):
 		even_input = input[B:]
 
 		def step(glimpse_count, c_tm1, h_tm1, odd_input, even_input, W_lstm, W_g):
-			turn = glimpse_count % 2
-			I = turn * even_input + (1 - turn) * odd_input
+			turn = T.eq(glimpse_count % 2, 0)
+			I = ifelse(turn, even_input, odd_input)
 			
 			glimpse = self.attend(I, h_tm1, W_g) 	# (B, attn_win, attn_win)
 			flat_glimpse = glimpse.reshape((B, -1))
@@ -191,9 +192,9 @@ class ConvARC3DA(BaseARC):
 		F_Z = 1.0 + ((c - center_z) / gamma_z) ** 2
 		F_Z = 1.0 / (PI * gamma_z * F_Z)
 		F_Z = F_Z / (F_Z.sum(axis=1).dimshuffle(0, 'x') + 1e-4)
-
 		FM = I * F_Z[:, :, np.newaxis, np.newaxis]
 		FM = FM.sum(axis=1)
+		
 		F_X, F_Y = self.get_filterbanks(gp)
 		G = batched_dot(batched_dot(F_Y, FM), F_X.transpose([0, 2, 1]))
 		return G

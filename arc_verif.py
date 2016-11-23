@@ -11,7 +11,7 @@ from lasagne.objectives import binary_crossentropy
 from lasagne.updates import adam
 from lasagne.layers import helper
 
-from layers import ARC
+from layers import SimpleARC
 from data_workers import OmniglotVerif
 from main import train, test, save
 
@@ -62,7 +62,7 @@ y = T.imatrix("target")
 
 l_in = InputLayer(shape=(None, image_size, image_size), input_var=X)
 l_noise = DropoutLayer(l_in, p=dropout)
-l_arc = ARC(l_noise, lstm_states=lstm_states, image_size=image_size, attn_win=attn_win, 
+l_arc = SimpleARC(l_noise, lstm_states=lstm_states, image_size=image_size, attn_win=attn_win, 
 					glimpses=glimpses, fg_bias_init=fg_bias_init)
 l_y = DenseLayer(l_arc, 1, nonlinearity=sigmoid)
 
