@@ -160,7 +160,7 @@ class ConvARC(BaseARC):
 			image_size, attn_win, glimpses, fg_bias_init, final_state_only=True, **kwargs)
 
 	def attend(self, I, H, W):
-		I = I[:, 0]
+		I = I.reshape((-1, self.image_size, self.image_size))
 		num_filters = self.num_filters
 		gp = T.dot(W, H.T).T
 		F_X, F_Y = self.get_filterbanks(gp)
