@@ -1,10 +1,5 @@
 import numpy as np
 
-import theano
-import theano.tensor as tensor
-
-import lasagne
-
 import time
 import gzip
 import cPickle
@@ -61,10 +56,10 @@ def train(train_fn, val_fn, worker, meta_data, get_params):
 
 				if val_acc > best_val_acc:
 					best_val_acc = val_acc
+					best_iter_n = iter_n
 
 				if val_loss < best_val_loss:
 					best_val_loss = val_loss
-					best_iter_n = iter_n
 					best_params = get_params()
 
 				if val_loss > best_val_loss + patience:
