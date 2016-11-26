@@ -18,3 +18,6 @@ Models that have the capacity of recognizing the subtle similarities or differen
   * To train Binary ARC model from the paper on Verfication task: `python arc_verif.py`
   * To train Convolutional ARC model from the paper on Verfication task: `python carc_verif.py`
   * To train the 50 layer Wide ResNet baseline on Verfication task: `python wrn_verif.py`
+
+## Pretrained Models
+Some of the pretrained models are available [here](https://drive.google.com/drive/folders/0B2EI3F3FJpunenBGZTBPSnZsRVE?usp=sharing)
