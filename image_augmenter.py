@@ -1,3 +1,7 @@
+"""
+taken and modified from: https://github.com/aleju/ImageAugmenter
+"""
+
 # -*- coding: utf-8 -*-
 """Wrapper functions and classes around scikit-images AffineTransformation.
 Simplifies augmentation of images in machine learning.
