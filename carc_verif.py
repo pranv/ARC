@@ -58,7 +58,7 @@ parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameter
 parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
 parser.add_argument("--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
-parser.add_argument("--learning-rate", type=float, default=2e-5, help="learning rate")
+parser.add_argument("--learning-rate", type=float, default=1e-4, help="learning rate")
 parser.add_argument("--image-size", type=int, default=32, help="side length of the square input image")
 
 parser.add_argument("--attn-win", type=int, default=4, help="side length of square attention window")
@@ -73,11 +73,11 @@ parser.add_argument("--n-iter", type=int, default=200000, help="number of iterat
 
 parser.add_argument("--dropout", type=float, default=0.2, help="dropout on the input")
 
-parser.add_argument("--wrn-depth", type=int, default=4, help="the resnet has depth equal to 4d+7")
+parser.add_argument("--wrn-depth", type=int, default=3, help="the resnet has depth equal to 4d+7")
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
-meta_data["expt_name"] = "ConvARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
+meta_data["expt_name"] = "ConvARC3DA_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
