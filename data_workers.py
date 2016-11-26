@@ -130,8 +130,8 @@ class Omniglot(object):
 			# similar pairs are by defnition within alphabet
 			sim_char_idx = choice(range(starts[0], starts[-1] + sizes[-1]))
 			
-			X[i+batch_size/2], X[i+3*batch_size/2] = data[sim_char_idx, choice(20, 2, replace=False)]
-			X[i], X[i+batch_size] = data[dis_char_idxs, choice(20, 2, replace=False)]
+			X[i], X[i+batch_size] = data[dis_char_idxs, choice(20, 2)]
+			X[i+batch_size/2], X[i+3*batch_size/2] = data[sim_char_idx, choice(20, 2, replace=False)]	
 		
 		y = np.zeros((batch_size, 1), dtype='int32')
 		y[:batch_size/2] = 0
