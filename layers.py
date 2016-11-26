@@ -184,7 +184,7 @@ class ConvARC3DA(BaseARC):
 
 		gp = T.dot(W, H.T).T
 
-		center_z = gp[:, 2].dimshuffle(0, 'x')
+		center_z = gp[:, 3].dimshuffle(0, 'x')
 		gamma_z = T.exp(1.0 - 4 * T.abs_(gp[:, 4])).dimshuffle([0, 'x'])
 		center_z = (num_filters - 1) * (center_z + 1.0) / 2.0
 
