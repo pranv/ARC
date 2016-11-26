@@ -26,12 +26,12 @@ def normal_init(shape, sigma):
 
 
 def batched_dot(A, B):
-	C = A.dimshuffle([0, 1, 2, 'x']) * B.dimshuffle([0, 'x', 1, 2])      
+	C = A.dimshuffle([0, 1, 2, 'x']) * B.dimshuffle([0, 'x', 1, 2])
 	return C.sum(axis=-2)
 
 
 class BaseARC(lasagne.layers.Layer):
-	def __init__(self, incoming, num_input, num_glimpse_params, lstm_states, image_size, attn_win, 
+	def __init__(self, incoming, num_input, num_glimpse_params, lstm_states, image_size, attn_win, \
 					glimpses, fg_bias_init, final_state_only=True, **kwargs):
 		super(BaseARC, self).__init__(incoming, **kwargs)
 
@@ -40,7 +40,7 @@ class BaseARC(lasagne.layers.Layer):
 			W_lstm[i*lstm_states:(i+1)*lstm_states, :num_input] = ortho_init(shape=(lstm_states, num_input))
 			W_lstm[i*lstm_states:(i+1)*lstm_states, num_input:-1] = ortho_init(shape=(lstm_states, lstm_states))
 		W_lstm[2*lstm_states:3*lstm_states, -1] = fg_bias_init
-		
+
 		W_g = normal_init(shape=(num_glimpse_params, lstm_states), sigma=0.01)
 
 		self.W_lstm = self.add_param(W_lstm, (4 * lstm_states, num_input + lstm_states + 1), name='W_lstm')
@@ -72,7 +72,7 @@ class BaseARC(lasagne.layers.Layer):
 		a = T.arange(image_size, dtype=dtype)
 		b = T.arange(image_size, dtype=dtype)
 
-		F_X = 1.0 + ((a - cX.dimshuffle([0, 1, 'x'])) / gamma) ** 2.0 
+		F_X = 1.0 + ((a - cX.dimshuffle([0, 1, 'x'])) / gamma) ** 2.0
 		F_Y = 1.0 + ((b - cY.dimshuffle([0, 1, 'x'])) / gamma) ** 2.0
 		F_X = 1.0 / (PI * gamma * F_X)
 		F_Y = 1.0 / (PI * gamma * F_Y)
@@ -101,8 +101,8 @@ class BaseARC(lasagne.layers.Layer):
 			glimpse = self.attend(I, h_tm1, W_g) 	# (B, attn_win, attn_win)
 			flat_glimpse = glimpse.reshape((B, -1))
 
-			lstm_ip = T.concatenate([flat_glimpse, h_tm1, T.ones((B, 1))], axis=1) # (B, num_input + states + 1)
-			pre_activation = T.dot(W_lstm, lstm_ip.T) # result: (4 * states, B)
+			lstm_ip = T.concatenate([flat_glimpse, h_tm1, T.ones((B, 1))], axis=1) 	# (B, num_input + states + 1)
+			pre_activation = T.dot(W_lstm, lstm_ip.T) 	# result: (4 * states, B)
 
 			z = T.tanh(pre_activation[0*lstm_states:1*lstm_states])
 			i = T.nnet.sigmoid(pre_activation[1*lstm_states:2*lstm_states])
@@ -177,7 +177,7 @@ class ConvARC3DA(BaseARC):
 		self.num_filters = num_filters
 
 		BaseARC.__init__(self, incoming, attn_win ** 2, 5, lstm_states, image_size, \
-			attn_win, glimpses, fg_bias_init, final_state_only=True, **kwargs)
+					attn_win, glimpses, fg_bias_init, final_state_only=True, **kwargs)
 
 	def attend(self, I, H, W):
 		num_filters = self.num_filters
@@ -194,7 +194,7 @@ class ConvARC3DA(BaseARC):
 		F_Z = F_Z / (F_Z.sum(axis=1).dimshuffle(0, 'x') + 1e-4)
 		FM = I * F_Z[:, :, np.newaxis, np.newaxis]
 		FM = FM.sum(axis=1)
-		
+
 		F_X, F_Y = self.get_filterbanks(gp)
 		G = batched_dot(batched_dot(F_Y, FM), F_X.transpose([0, 2, 1]))
 		return G

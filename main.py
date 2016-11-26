@@ -10,7 +10,7 @@ def train(train_fn, val_fn, worker, meta_data, get_params):
 	val_freq = 1000
 	val_num_batches = 250
 	patience = 0.1
-	
+
 	meta_data["training_loss"] = []
 	meta_data["validation_loss"] = []
 	meta_data["validation_accuracy"] = []
