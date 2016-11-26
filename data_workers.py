@@ -1,5 +1,4 @@
 import numpy as np
-
 from numpy.random import choice
 
 import theano
@@ -11,38 +10,38 @@ from image_augmenter import ImageAugmenter
 
 class Omniglot(object):
 	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32, \
-		data_split=[30, 10], within_alphabet=False, flip=True, scale=1.2, \
+		data_split=[30, 10], within_alphabet=True, flip=True, scale=0.2, \
 		rotation_deg=20, shear_deg=10, translation_px=5):
 		"""
-		path: path to omniglot.npy file produced by data/setup_omniglot.py script
-		shape: should be either 3 or 4, specifies the X's tensor format (4D required for Conv)
-		batch_size: global batch size
-		image_size
+		path: path to omniglot.npy file produced by "data/setup_omniglot.py" script
+		batch_size: the output is (2 * batch size, 1, image_size, image_size)
+					X[i] & X[i + batch_size] are the pair
+		image_size: size of the image
 		data_split: in number of alphabets, e.g. [30, 10] means out of 50 Omniglot characters, 
 					30 is for training, 10 for validation and the remaining(10) for testing
 		within_alphabet: for verfication task, when 2 characters are sampled to form a pair, 
-							should they be from the same alphabet (language)? (True, False)
+						this flag specifies if should they be from the same alphabet/language
 		---------------------
 		Data Augmentation Parameters:
-			flip
-			scale
+			flip: here flipping both the images in a pair
+			scale: x would scale image by + or - x%
 			rotation_deg
 			shear_deg
-			translation_px
+			translation_px: in both x and y directions
 		"""
 		
 		chars = np.load(path)
 
 		# resize the images
-		resized_chars = np.zeros((1623, 20, image_size, image_size))
+		resized_chars = np.zeros((1623, 20, image_size, image_size), dtype='uint8')
 		for i in xrange(1623):
 			for j in xrange(20):
 				resized_chars[i, j] = resize(chars[i, j], (image_size, image_size))
 		chars = resized_chars
 
-		self.mean_pixel = chars.mean() / 255.0	# mean subtraction
+		self.mean_pixel = chars.mean() / 255.0	# used later for mean subtraction
 
-		# starting index (char) of each alphabet
+		# starting index of each alphabet in a list of chars
 		a_start = [0, 20, 49, 75, 116, 156, 180, 226, 240, 266, 300, 333, 355, 381,
 						  424, 448, 496, 518, 534, 586, 633, 673, 699, 739, 780, 813,
 						  827, 869, 892, 909, 964, 984, 1010, 1036, 1062, 1088, 1114,
@@ -54,10 +53,6 @@ class Omniglot(object):
 							16, 52, 47, 40, 26, 40, 41, 33, 14, 42, 23, 17, 55, 20, 26, 26, 26,
 							26, 26, 45, 45, 41, 26, 47, 40, 30, 45, 46, 28, 23, 25, 42, 26]
 
-		# slicing indices for splitting data
-		i = a_start[data_split[0]] + a_size[data_split[0]]
-		j = a_start[data_split[0] + data_split[1]] + a_size[data_split[1]]
-
 		# slicing indices for splitting a_start & a_size
 		i = data_split[0]
 		j = data_split[0] + data_split[1]
@@ -66,6 +61,9 @@ class Omniglot(object):
 		sizes = {}
 		sizes['train'], sizes['val'], sizes['test']  = a_size[:i], a_size[i:j], a_size[j:]
 		
+		# each alphabet/language has different number of characters.
+		# in order to uniformly sample all characters, we need weigh the probability 
+		# of sampling a alphabet by its size. p is that probability
 		def size2p(size):
 			s = np.array(size).astype('float64')
 			return s / s.sum()
@@ -73,10 +71,9 @@ class Omniglot(object):
 		p = {}
 		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
 
-		# NOTE: here flipping both the images in a pair
 		self.augmentor = ImageAugmenter(image_size, image_size,
                  hflip=flip, vflip=flip,
-                 scale_to_percent=scale, rotation_deg=rotation_deg, shear_deg=shear_deg,
+                 scale_to_percent=1.0+scale, rotation_deg=rotation_deg, shear_deg=shear_deg,
                  translation_x_px=translation_px, translation_y_px=translation_px)
 
 		self.data = chars
@@ -115,41 +112,40 @@ class Omniglot(object):
 
 		num_alphbts = len(starts)
 
-		X = np.zeros((2 * batch_size, image_size, image_size), dtype=theano.config.floatX)
+		X = np.zeros((2 * batch_size, image_size, image_size), dtype='uint8')
 		for i in xrange(batch_size/2):
 			# sampling dissimilar pairs
 			if within_alphabet:
-				alphbt_idx = choice(num_alphbts, p=p)			# select a alphabet
-				char_offset = choice(sizes[alphbt_idx], 2, replace=False)	# select 2 distinct chars, by selecting its offset within the alphabet
-				char_idxs = starts[alphbt_idx] + char_offset		# calculate char index	
+				# select a alphabet
+				alphbt_idx = choice(num_alphbts, p=p)
+				# select 2 distinct chars, by selecting its offset within the alphabet			
+				char_offset = choice(sizes[alphbt_idx], 2, replace=False)
+				# calculate char index	
+				dis_char_idxs = starts[alphbt_idx] + char_offset
 			else:
-				char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 2, replace=False)		# calculate char index	
+				# sample 2 chars overall
+				dis_char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 2, replace=False)
 			
-			X[i], X[i+batch_size] = data[char_idxs, choice(20, 2, replace=False)] # choose 2 drawers
-
 			# sampling similar pairs
-			if within_alphabet:
-				alphbt_idx = choice(num_alphbts, p=p)			# select an alphabet
-				char_offset = choice(sizes[alphbt_idx]) 	# select a char, by selecting its offset within the alphabet
-				char_idx = starts[alphbt_idx] + char_offset	# calculate char index
-			else:
-				char_idx = choice(range(starts[0], starts[-1] + sizes[-1]))		# calculate char index	
+			# similar pairs are by defnition within alphabet
+			sim_char_idx = choice(range(starts[0], starts[-1] + sizes[-1]))
 			
-			X[i+batch_size/2], X[i+3*batch_size/2] = data[char_idx, choice(20, 2, replace=False)] # choose 2 drawers
-
+			X[i+batch_size/2], X[i+3*batch_size/2] = data[sim_char_idx, choice(20, 2, replace=False)]
+			X[i], X[i+batch_size] = data[dis_char_idxs, choice(20, 2, replace=False)]
+		
 		y = np.zeros((batch_size, 1), dtype='int32')
 		y[:batch_size/2] = 0
 		y[batch_size/2:] = 1
 
 		if part == 'train':
-			X = self.augmentor.augment_batch(X.astype('uint8'))
+			X = self.augmentor.augment_batch(X)
 		else:
-			X /= 255.0
+			X = X / 255.0
 		
-		X -= self.mean_pixel
+		X = X - self.mean_pixel
+		
+		X = X[:, np.newaxis] 	# make it 4D
 		X = X.astype(theano.config.floatX)
-
-		X = X[:, np.newaxis]
 
 		return X, y
 
