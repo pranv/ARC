@@ -26,7 +26,7 @@ parser.add_argument("--learning-rate", type=float, default=1e-4, help="learning 
 parser.add_argument("--image-size", type=int, default=32, help="side length of the square input image")
 
 parser.add_argument("--attn-win", type=int, default=4, help="side length of square attention window")
-parser.add_argument("--lstm-states", type=int, default=256, help="number of LSTM controller states")
+parser.add_argument("--lstm-states", type=int, default=512, help="number of LSTM controller states")
 parser.add_argument("--glimpses", type=int, default=8, help="number of glimpses per image")
 parser.add_argument("--fg-bias-init", type=float, default=0.2, help="initial bias for the forget gate of LSTM controller")
 
