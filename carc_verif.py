@@ -73,8 +73,8 @@ parser.add_argument("--n-iter", type=int, default=200000, help="number of iterat
 
 parser.add_argument("--dropout", type=float, default=0.2, help="dropout on the input")
 
-parser.add_argument("--wrn-depth", type=int, default=3, help="the resnet has depth equal to 4d+7")
-parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
+parser.add_argument("--wrn-depth", type=int, default=2, help="the resnet has depth equal to 4d+7")
+parser.add_argument("--wrn-width", type=int, default=1, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "ConvARC3DA_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
