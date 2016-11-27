@@ -56,9 +56,9 @@ class BaseARC(lasagne.layers.Layer):
 		attn_win = self.attn_win
 		image_size = self.image_size
 
-		center_y = gp[:, 0].dimshuffle(0, 'x')
-		center_x = gp[:, 1].dimshuffle(0, 'x')
-		delta = 1.0 - T.abs_(gp[:, 2]).dimshuffle(0, 'x')
+		center_y = gp[:, 0].dimshuffle([0, 'x'])
+		center_x = gp[:, 1].dimshuffle([0, 'x'])
+		delta = 1.0 - T.abs_(gp[:, 2]).dimshuffle([0, 'x'])
 		gamma = T.exp(1.0 - 2 * T.abs_(gp[:, 2])).dimshuffle([0, 'x', 'x'])
 
 		center_y = (image_size - 1) * (center_y + 1.0) / 2.0
@@ -76,8 +76,8 @@ class BaseARC(lasagne.layers.Layer):
 		F_Y = 1.0 + ((b - cY.dimshuffle([0, 1, 'x'])) / gamma) ** 2.0
 		F_X = 1.0 / (PI * gamma * F_X)
 		F_Y = 1.0 / (PI * gamma * F_Y)
-		F_X = F_X / (F_X.sum(axis=-1).dimshuffle(0, 1, 'x') + 1e-4)
-		F_Y = F_Y / (F_Y.sum(axis=-1).dimshuffle(0, 1, 'x') + 1e-4)
+		F_X = F_X / (F_X.sum(axis=-1).dimshuffle([0, 1, 'x']) + 1e-4)
+		F_Y = F_Y / (F_Y.sum(axis=-1).dimshuffle([0, 1, 'x']) + 1e-4)
 
 		return F_X, F_Y
 
@@ -185,14 +185,14 @@ class ConvARC3DA(BaseARC):
 		gp = T.dot(W, H.T).T
 
 		center_z = gp[:, 3].dimshuffle(0, 'x')
-		gamma_z = T.exp(1.0 - 4 * T.abs_(gp[:, 4])).dimshuffle([0, 'x'])
+		gamma_z = T.exp(-T.abs_(gp[:, 4])).dimshuffle([0, 'x'])
 		center_z = (num_filters - 1) * (center_z + 1.0) / 2.0
 
 		c = np.arange(num_filters, dtype=dtype)
 		F_Z = 1.0 + ((c - center_z) / gamma_z) ** 2
 		F_Z = 1.0 / (PI * gamma_z * F_Z)
-		F_Z = F_Z / (F_Z.sum(axis=1).dimshuffle(0, 'x') + 1e-4)
-		FM = I * F_Z[:, :, np.newaxis, np.newaxis]
+		F_Z = F_Z / (F_Z.sum(axis=1).dimshuffle([0, 'x']) + 1e-4)
+		FM = I * F_Z.dimshuffle([0, 1, 'x', 'x'])
 		FM = FM.sum(axis=1)
 
 		F_X, F_Y = self.get_filterbanks(gp)
