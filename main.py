@@ -109,7 +109,6 @@ def save(meta_data, params):
 
 	return
 
-
 def read_params(path):
 	with gzip.open(path, "rb") as log_p:
 		params = cPickle.load(log_p)
