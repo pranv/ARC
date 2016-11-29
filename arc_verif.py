@@ -13,7 +13,7 @@ from lasagne.layers import helper
 
 from layers import SimpleARC
 from data_workers import OmniglotVerif
-from main import train, test, save
+from main import train, test, save, read_params
 
 import argparse
 
@@ -36,6 +36,8 @@ parser.add_argument("--testing", action="store_true", help="report test set resu
 parser.add_argument("--n-iter", type=int, default=1000000, help="number of iterations")
 
 parser.add_argument("--dropout", type=float, default=0.2, help="dropout on the input")
+
+parser.add_argument("--weights", type=str, default=None, help="path to pretrained weights")
 
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "ARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
@@ -86,6 +88,11 @@ print "... loading dataset"
 if meta_data["dataset"] == "omniglot":
 	worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, \
 		data_split=data_split, within_alphabet=within_alphabet)
+
+if meta_data["weights"] is not None:
+	print "... loading pretrained weights"
+	params = read_params(meta_data["weights"])
+	helper.set_all_param_values(l_y, params)
 
 meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \
 	get_params=lambda: helper.get_all_param_values(l_y))
