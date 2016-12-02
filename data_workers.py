@@ -7,6 +7,8 @@ from scipy.misc import imresize as resize
 
 from image_augmenter import ImageAugmenter
 
+from main import serialize, deserialize
+
 
 class Omniglot(object):
 	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32, \
@@ -84,7 +86,12 @@ class Omniglot(object):
 		self.within_alphabet = within_alphabet
 		self.batch_size = batch_size
 
-	def fetch_verif_batch(self, part='train'):
+	def fetch_batch(self, part):
+		pass
+
+
+class OmniglotVerif(Omniglot):
+	def fetch_batch(self, part):
 		"""
 			This outputs batch_size number of pairs
 			Thus the actual number of images outputted is 2 * batch_size
@@ -143,21 +150,71 @@ class Omniglot(object):
 			X = X / 255.0
 		
 		X = X - self.mean_pixel
-		
-		X = X[:, np.newaxis] 	# make it 4D
+		X = X[:, np.newaxis]
 		X = X.astype(theano.config.floatX)
 
 		return X, y
 
-	def fetch_o_s_batch(self, part='train'):
-		pass
-
-
-class OmniglotVerif(Omniglot):
-	def fetch_batch(self, part):
-		return self.fetch_verif_batch(part)
-
 
 class OmniglotOS(Omniglot):
+	def __init__(self, f_embedder, embedding_dim, path='data/omniglot.npy', num_trails=8, image_size=32, \
+		data_split=[30, 10], within_alphabet=True):
+		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
+		
+
+		def size2p(size):
+			s = (np.array(size) >= 20) * np.array(size).astype('float64')
+			return s / s.sum()
+
+		sizes = self.sizes
+		p = {}
+		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
+
+		self.p = p
+		self.embedding_dim = embedding_dim
+		self.embedder = deserialize(f_embedder + '.emf')
+		self.num_trails = num_trails
+
 	def fetch_batch(self, part):
-		return self.fetch_o_s_batch(part)
+		data = self.data
+		starts = self.starts[part]
+		sizes = self.sizes[part]
+		p = self.p[part]
+		image_size = self.image_size
+		within_alphabet = self.within_alphabet
+		num_trails = self.num_trails
+
+		num_alphbts = len(starts)
+
+		embedder = self.embedder
+		embedding_dim = self.embedding_dim
+
+		X = np.zeros((num_trails, 20, embedding_dim))
+		y = np.zeros((num_trails), dtype='int32')
+		
+		for trail in xrange(num_trails):
+			alphbt_idx = choice(num_alphbts, p=p)
+			char_offsets = choice(sizes[alphbt_idx], 20, replace=False)
+			char_idxs = starts[alphbt_idx] + char_offsets
+			key = choice(20)
+			key_idx = char_idxs[key]
+
+			T = np.zeros((2 * 20, image_size, image_size), dtype='uint8')
+			T[:20] = data[char_idxs, choice(20)]
+			T[20:] = data[key_idx, choice(20)]
+
+			if part == 'train':
+				T = self.augmentor.augment_batch(T)
+			else:
+				T = T / 255.0
+			
+			T = T - self.mean_pixel
+			T = T[:, np.newaxis]
+			T = T.astype(theano.config.floatX)
+
+			X[trail] = embedder(T)
+			y[trail] = key
+
+		X = X.astype(theano.config.floatX)
+		
+		return X, y
