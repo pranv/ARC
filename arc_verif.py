@@ -13,7 +13,7 @@ from lasagne.layers import helper
 
 from layers import SimpleARC
 from data_workers import OmniglotVerif
-from main import train, test, save, read_params
+from main import train, test, serialize, deserialize
 
 import argparse
 
@@ -29,15 +29,13 @@ parser.add_argument("--attn-win", type=int, default=4, help="side length of squa
 parser.add_argument("--lstm-states", type=int, default=512, help="number of LSTM controller states")
 parser.add_argument("--glimpses", type=int, default=8, help="number of glimpses per image")
 parser.add_argument("--fg-bias-init", type=float, default=0.2, help="initial bias for the forget gate of LSTM controller")
+parser.add_argument("--dropout", type=float, default=0.2, help="dropout on the input")
 
 parser.add_argument("--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
 parser.add_argument("--batch-size", type=int, default=128, help="batch size")
-parser.add_argument("--testing", action="store_true", help="report test set results")
 parser.add_argument("--n-iter", type=int, default=1000000, help="number of iterations")
-
-parser.add_argument("--dropout", type=float, default=0.2, help="dropout on the input")
-
-parser.add_argument("--weights", type=str, default=None, help="path to pretrained weights")
+parser.add_argument("--testing", action="store_true", default=False, help="report test set results")
+parser.add_argument("--reload-weights", action="store_true", default=False, help="use pretrained weights")
 
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "ARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
@@ -45,6 +43,7 @@ meta_data["expt_name"] = "ARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["
 for md in meta_data.keys():
 	print md, meta_data[md]
 
+expt_name = meta_data["expt_name"]
 learning_rate = meta_data["learning_rate"]
 image_size = meta_data["image_size"]
 attn_win = meta_data["attn_win"]
@@ -70,6 +69,7 @@ l_y = DenseLayer(l_arc, 1, nonlinearity=sigmoid)
 
 prediction = get_output(l_y)
 prediction_clean = get_output(l_y, deterministic=True)
+embedding = get_output(l_arc, deterministic=True)
 
 loss = T.mean(binary_crossentropy(prediction, y))
 accuracy = T.mean(T.eq(prediction_clean > 0.5, y), dtype=theano.config.floatX)
@@ -83,23 +83,26 @@ print "number of parameters: ", meta_data["num_param"]
 print "... compiling"
 train_fn = theano.function([X, y], outputs=loss, updates=updates)
 val_fn = theano.function([X, y], outputs=[loss, accuracy])
+embed_fn = theano.function([X], outputs=embedding)
 
-print "... loading dataset"
+if meta_data["reload_weights"]:
+	print "... loading pretrained weights"
+	params = deserialize(expt_name + '.params')
+	helper.set_all_param_values(l_y, params)
+'''
+print "... loading dataset: "
 if meta_data["dataset"] == "omniglot":
 	worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, \
 		data_split=data_split, within_alphabet=within_alphabet)
 
-if meta_data["weights"] is not None:
-	print "... loading pretrained weights"
-	params = read_params(meta_data["weights"])
-	helper.set_all_param_values(l_y, params)
-
-meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \
-	get_params=lambda: helper.get_all_param_values(l_y))
+meta_data, params = train(train_fn, val_fn, worker, meta_data, \
+		get_params=lambda: helper.get_all_param_values(l_y))
 
 if meta_data["testing"]:
 	print "... testing"
-	helper.set_all_param_values(l_y, best_params)
+	helper.set_all_param_values(l_y, params)
 	meta_data = test(val_fn, worker, meta_data)
-
-save(meta_data, best_params)
+'''
+#serialize(params, expt_name + '.params')
+#serialize(meta_data, expt_name + '.mtd')
+serialize(embed_fn, expt_name + '.emf')
