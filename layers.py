@@ -140,7 +140,7 @@ class SimpleARC(BaseARC):
 		fg_bias_init, final_state_only=True, **kwargs):
 
 		BaseARC.__init__(self, incoming, attn_win**2, 3, lstm_states, image_size, \
-			attn_win, glimpses, fg_bias_init, final_state_only=True, **kwargs)
+			attn_win, glimpses, fg_bias_init, final_state_only, **kwargs)
 
 	def attend(self, I, H, W):
 		I = I[:, 0]
@@ -157,7 +157,7 @@ class ConvARC(BaseARC):
 		self.num_filters = num_filters
 
 		BaseARC.__init__(self, incoming, num_filters * attn_win ** 2, 3, lstm_states, \
-			image_size, attn_win, glimpses, fg_bias_init, final_state_only=True, **kwargs)
+			image_size, attn_win, glimpses, fg_bias_init, final_state_only, **kwargs)
 
 	def attend(self, I, H, W):
 		I = I.reshape((-1, self.image_size, self.image_size))
@@ -177,7 +177,7 @@ class ConvARC3DA(BaseARC):
 		self.num_filters = num_filters
 
 		BaseARC.__init__(self, incoming, attn_win ** 2, 5, lstm_states, image_size, \
-					attn_win, glimpses, fg_bias_init, final_state_only=True, **kwargs)
+					attn_win, glimpses, fg_bias_init, final_state_only, **kwargs)
 
 	def attend(self, I, H, W):
 		num_filters = self.num_filters
