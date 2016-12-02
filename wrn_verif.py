@@ -105,7 +105,7 @@ for _ in range(1, (wrn_n+2)):
 bn_post_conv = BatchNormLayer(l)
 bn_post_relu = NonlinearityLayer(bn_post_conv, rectify)
 avg_pool = GlobalPoolLayer(bn_post_relu)
-dense_layer = DenseLayer(avg_pool, num_units=128, W=HeNormal(), nonlinearity=rectify)
+dense_layer = DenseLayer(avg_pool, num_units=128, W=HeNormal(gain='relu'), nonlinearity=rectify)
 dist_layer = ExpressionLayer(dense_layer, lambda I: T.abs_(I[:I.shape[0]/2] - I[I.shape[0]/2:]), output_shape='auto')
 l_y = DenseLayer(dist_layer, num_units=1, nonlinearity=sigmoid)
 
