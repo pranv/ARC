@@ -96,22 +96,14 @@ def test(test_fn, worker, meta_data):
 	return meta_data
 
 
-def save(meta_data, params):
-	print "... serializing parameters" 
-	with gzip.open("results/" + meta_data["expt_name"] + ".params", "wb") as log_p:
-		cPickle.dump(params, log_p)
-		log_p.close()
+def serialize(obj, filename):
+	with gzip.open("results/" + filename, "wb") as f:
+		cPickle.dump(obj, f)
+		f.close()
 
-	print "... serializing metadata"
-	with gzip.open("results/" + meta_data["expt_name"] + ".mtd", "wb") as log_md:
-		cPickle.dump(meta_data, log_md)
-		log_md.close()
 
-	return
-
-def read_params(path):
-	with gzip.open(path, "rb") as log_p:
-		params = cPickle.load(log_p)
-		log_p.close()
-
-	return params
+def deserialize(filename):
+	with gzip.open("results/" + filename, "rb") as f:
+		obj = cPickle.load(f)
+		f.close()
+	return obj

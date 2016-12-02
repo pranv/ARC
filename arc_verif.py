@@ -89,7 +89,7 @@ if meta_data["reload_weights"]:
 	print "... loading pretrained weights"
 	params = deserialize(expt_name + '.params')
 	helper.set_all_param_values(l_y, params)
-'''
+
 print "... loading dataset: "
 if meta_data["dataset"] == "omniglot":
 	worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, \
@@ -102,7 +102,7 @@ if meta_data["testing"]:
 	print "... testing"
 	helper.set_all_param_values(l_y, params)
 	meta_data = test(val_fn, worker, meta_data)
-'''
-#serialize(params, expt_name + '.params')
-#serialize(meta_data, expt_name + '.mtd')
+
+serialize(params, expt_name + '.params')
+serialize(meta_data, expt_name + '.mtd')
 serialize(embed_fn, expt_name + '.emf')
