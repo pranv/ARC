@@ -16,7 +16,7 @@ from lasagne.objectives import binary_crossentropy
 from lasagne.updates import adam
 from lasagne.layers import helper
 
-from layers import ConvARC3DA
+from layers import ConvARC
 from data_workers import OmniglotVerif
 from main import train, test, save
 
@@ -65,19 +65,19 @@ parser.add_argument("--attn-win", type=int, default=4, help="side length of squa
 parser.add_argument("--lstm-states", type=int, default=256, help="number of LSTM controller states")
 parser.add_argument("--glimpses", type=int, default=8, help="number of glimpses per image")
 parser.add_argument("--fg-bias-init", type=float, default=0.2, help="initial bias for the forget gate of LSTM controller")
+parser.add_argument("--dropout", type=float, default=0.0, help="dropout on the input")
+parser.add_argument("--reload-weights", action="store_true", default=False, help="use pretrained weights")
 
 parser.add_argument("--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
 parser.add_argument("--batch-size", type=int, default=128, help="batch size")
 parser.add_argument("--testing", action="store_true", help="report test set results")
 parser.add_argument("--n-iter", type=int, default=200000, help="number of iterations")
 
-parser.add_argument("--dropout", type=float, default=0.0, help="dropout on the input")
-
 parser.add_argument("--wrn-depth", type=int, default=3, help="the resnet has depth equal to 4d+7")
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
-meta_data["expt_name"] = "ConvARC3DA_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
+meta_data["expt_name"] = "ConvARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
@@ -121,12 +121,13 @@ for _ in range(1, (wrn_n+2)):
 bn_post_conv = BatchNormLayer(l)
 bn_post_relu = NonlinearityLayer(bn_post_conv, rectify)
 
-l_carc = ConvARC3DA(bn_post_relu, num_filters=n_filters[2], lstm_states=lstm_states, image_size=16, 
+l_carc = ConvARC(bn_post_relu, num_filters=n_filters[2], lstm_states=lstm_states, image_size=16, 
 					attn_win=attn_win, glimpses=glimpses, fg_bias_init=fg_bias_init)
 l_y = DenseLayer(l_carc, num_units=1, nonlinearity=sigmoid)
 
 prediction = get_output(l_y)
 prediction_clean = get_output(l_y, deterministic=True)
+embedding = get_output(l_carc, deterministic=True)
 
 loss = T.mean(binary_crossentropy(prediction, y))
 accuracy = T.mean(binary_accuracy(prediction_clean, y))
@@ -144,6 +145,12 @@ print "number of parameters: ", meta_data["num_param"]
 print "... compiling"
 train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
 val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
+embed_fn = theano.function([X], outputs=embedding)
+
+if meta_data["reload_weights"]:
+	print "... loading pretrained weights"
+	params = deserialize(expt_name + '.params')
+	helper.set_all_param_values(l_y, params)
 
 print "... loading dataset"
 if meta_data["dataset"] == "omniglot":
@@ -158,4 +165,6 @@ if meta_data["testing"]:
 	helper.set_all_param_values(l_y, best_params)
 	meta_data = test(val_fn, worker, meta_data)
 
-save(meta_data, best_params)
+serialize(params, expt_name + '.params')
+serialize(meta_data, expt_name + '.mtd')
+serialize(embed_fn, expt_name + '.emf')
