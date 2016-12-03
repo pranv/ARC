@@ -190,7 +190,7 @@ class OmniglotOS(Omniglot):
 		embedding_dim = self.embedding_dim
 
 		X = np.zeros((num_trails, 20, embedding_dim))
-		y = np.zeros((num_trails), dtype='int32')
+		y = np.zeros((num_trails, 1), dtype='int32')
 		
 		for trail in xrange(num_trails):
 			if within_alphabet:
