@@ -13,7 +13,7 @@ from lasagne.nonlinearities import rectify, sigmoid
 from lasagne.init import HeNormal
 from lasagne.layers import get_all_params, get_all_layers, get_output
 from lasagne.regularization import regularize_layer_params
-from lasagne.objectives import binary_crossentropy
+from lasagne.objectives import binary_crossentropy, binary_accuracy
 from lasagne.updates import adam
 from lasagne.layers import helper
 
