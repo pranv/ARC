@@ -17,14 +17,16 @@ from main import train, test, serialize, deserialize
 from data_workers import OmniglotOS
 
 
+num_states = 128
+print num_states
+
 print "... setting up the network"
 X = T.tensor3("input")
 y = T.ivector("target")
 
-num_states = 64
 l_in = InputLayer(shape=(None, 20, 512), input_var=X)
-l_lstm_up = LSTMLayer(l_in, num_states, learn_init=True, grad_clipping=1., )
-l_lstm_down = LSTMLayer(l_in, num_states, learn_init=True, grad_clipping=1., backwards=True)
+l_lstm_up = LSTMLayer(l_in, num_states, learn_init=True, grad_clipping=5., )
+l_lstm_down = LSTMLayer(l_in, num_states, learn_init=True, grad_clipping=5., backwards=True)
 l_merge = ElemwiseSumLayer([l_lstm_up, l_lstm_down])
 l_rshp1 = ReshapeLayer(l_merge, (-1, num_states))
 l_dense = DenseLayer(l_rshp1, 1, W=HeNormal(gain='relu'), nonlinearity=rectify)
@@ -44,7 +46,7 @@ train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
 val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 
 print "... loading data"
-worker = OmniglotOS('ARC_VERIF_omniglot_standard', 512, within_alphabet=True, num_trails=64)
+worker = OmniglotOS('ARC_VERIF_omniglot_standard', 512, within_alphabet=True, num_trails=64, data_split=[30, 10])
 
 meta_data = {}
 meta_data["n_iter"] = 100000
