@@ -121,7 +121,6 @@ class OmniglotVerif(Omniglot):
 
 		X = np.zeros((2 * batch_size, image_size, image_size), dtype='uint8')
 		for i in xrange(batch_size/2):
-			# sampling dissimilar pairs
 			if within_alphabet:
 				alphbt_idx = choice(num_alphbts, p=p)
 				char_offset = choice(sizes[alphbt_idx], 2, replace=False)
@@ -184,7 +183,7 @@ class OmniglotOS(Omniglot):
 		embedding_dim = self.embedding_dim
 
 		X = np.zeros((num_trails, 20, embedding_dim))
-		y = np.zeros((num_trails, 1), dtype='int32')
+		y = np.zeros((num_trails), dtype='int32')
 		
 		for trail in xrange(num_trails):
 			if within_alphabet:

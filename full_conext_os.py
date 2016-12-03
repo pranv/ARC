@@ -19,7 +19,7 @@ from data_workers import OmniglotOS
 
 print "... setting up the network"
 X = T.tensor3("input")
-y = T.imatrix("target")
+y = T.ivector("target")
 
 l_in = InputLayer(shape=(None, 20, 512), input_var=X)
 l_lstm1 = LSTMLayer(l_in, 64)
