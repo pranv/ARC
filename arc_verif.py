@@ -103,6 +103,6 @@ if meta_data["testing"]:
 	helper.set_all_param_values(l_y, params)
 	meta_data = test(val_fn, worker, meta_data)
 
-#serialize(params, expt_name + '.params')
-#serialize(meta_data, expt_name + '.mtd')
-#serialize(embed_fn, expt_name + '.emf')
+serialize(params, expt_name + '.params')
+serialize(meta_data, expt_name + '.mtd')
+serialize(embed_fn, expt_name + '.emf')
