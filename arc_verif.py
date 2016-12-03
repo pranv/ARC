@@ -7,7 +7,7 @@ import lasagne
 from lasagne.layers import InputLayer, DenseLayer, DropoutLayer
 from lasagne.nonlinearities import sigmoid
 from lasagne.layers import get_all_params, get_output
-from lasagne.objectives import binary_crossentropy
+from lasagne.objectives import binary_crossentropy, binary_accuracy
 from lasagne.updates import adam
 from lasagne.layers import helper
 
@@ -59,7 +59,7 @@ meta_data["num_output"] = 2
 
 print "... setting up the network"
 X = T.tensor4("input")
-y = T.imatrix("target")
+y = T.ivector("target")
 
 l_in = InputLayer(shape=(None, 1, image_size, image_size), input_var=X)
 l_noise = DropoutLayer(l_in, p=dropout)
@@ -72,7 +72,7 @@ prediction_clean = get_output(l_y, deterministic=True)
 embedding = get_output(l_arc, deterministic=True)
 
 loss = T.mean(binary_crossentropy(prediction, y))
-accuracy = T.mean(T.eq(prediction_clean > 0.5, y), dtype=theano.config.floatX)
+accuracy = T.mean(binary_accuracy(prediction_clean, y))
 
 params = get_all_params(l_y)
 updates = adam(loss, params, learning_rate=learning_rate)
@@ -90,7 +90,7 @@ if meta_data["reload_weights"]:
 	params = deserialize(expt_name + '.params')
 	helper.set_all_param_values(l_y, params)
 
-print "... loading dataset: "
+print "... loading dataset"
 if meta_data["dataset"] == "omniglot":
 	worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, \
 		data_split=data_split, within_alphabet=within_alphabet)
@@ -103,6 +103,6 @@ if meta_data["testing"]:
 	helper.set_all_param_values(l_y, params)
 	meta_data = test(val_fn, worker, meta_data)
 
-serialize(params, expt_name + '.params')
-serialize(meta_data, expt_name + '.mtd')
-serialize(embed_fn, expt_name + '.emf')
+#serialize(params, expt_name + '.params')
+#serialize(meta_data, expt_name + '.mtd')
+#serialize(embed_fn, expt_name + '.emf')

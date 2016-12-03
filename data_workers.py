@@ -140,7 +140,7 @@ class OmniglotVerif(Omniglot):
 			X[i], X[i+batch_size] = data[dis_char_idxs, choice(20, 2)]
 			X[i+batch_size/2], X[i+3*batch_size/2] = data[sim_char_idx, choice(20, 2, replace=False)]	
 		
-		y = np.zeros((batch_size, 1), dtype='int32')
+		y = np.zeros((batch_size), dtype='int32')
 		y[:batch_size/2] = 0
 		y[batch_size/2:] = 1
 
@@ -158,7 +158,7 @@ class OmniglotVerif(Omniglot):
 
 class OmniglotOS(Omniglot):
 	def __init__(self, f_embedder, embedding_dim, path='data/omniglot.npy', num_trails=8, image_size=32, \
-		data_split=[30, 10], within_alphabet=True):
+		data_split=[25, 5], within_alphabet=True):
 		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
 		
 
@@ -193,21 +193,25 @@ class OmniglotOS(Omniglot):
 		y = np.zeros((num_trails), dtype='int32')
 		
 		for trail in xrange(num_trails):
-			alphbt_idx = choice(num_alphbts, p=p)
-			char_offsets = choice(sizes[alphbt_idx], 20, replace=False)
-			char_idxs = starts[alphbt_idx] + char_offsets
+			if within_alphabet:
+				alphbt_idx = choice(num_alphbts, p=p)
+				char_offsets = choice(sizes[alphbt_idx], 20, replace=False)
+				char_idxs = starts[alphbt_idx] + char_offsets
+			else:
+				char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 20, replace=False)
+			
 			key = choice(20)
 			key_idx = char_idxs[key]
 
 			T = np.zeros((2 * 20, image_size, image_size), dtype='uint8')
 			T[:20] = data[char_idxs, choice(20)]
 			T[20:] = data[key_idx, choice(20)]
-
+			
 			if part == 'train':
 				T = self.augmentor.augment_batch(T)
 			else:
 				T = T / 255.0
-			
+		
 			T = T - self.mean_pixel
 			T = T[:, np.newaxis]
 			T = T.astype(theano.config.floatX)

@@ -100,7 +100,7 @@ print "... setting up the network"
 n_filters = {0: 16, 1: 16 * wrn_k, 2: 32 * wrn_k}
 
 X = T.tensor4("input")
-y = T.imatrix("target")
+y = T.ivector("target")
 
 l_in = InputLayer(shape=(None, 1, image_size, image_size), input_var=X)
 
@@ -129,7 +129,7 @@ prediction = get_output(l_y)
 prediction_clean = get_output(l_y, deterministic=True)
 
 loss = T.mean(binary_crossentropy(prediction, y))
-accuracy = T.mean(T.eq(prediction_clean > 0.5, y), dtype=theano.config.floatX)
+accuracy = T.mean(binary_accuracy(prediction_clean, y))
 
 all_layers = get_all_layers(l_y)
 l2_penalty = 0.0001 * regularize_layer_params(all_layers, lasagne.regularization.l2)
