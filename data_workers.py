@@ -140,7 +140,7 @@ class OmniglotVerif(Omniglot):
 			X[i], X[i+batch_size] = data[dis_char_idxs, choice(20, 2)]
 			X[i+batch_size/2], X[i+3*batch_size/2] = data[sim_char_idx, choice(20, 2, replace=False)]	
 		
-		y = np.zeros((batch_size), dtype='int32')
+		y = np.zeros((batch_size, 1), dtype='int32')
 		y[:batch_size/2] = 0
 		y[batch_size/2:] = 1
 

@@ -87,7 +87,7 @@ print "... setting up the network"
 n_filters = {0: 16, 1: 16 * wrn_k, 2: 32 * wrn_k, 3: 64 * wrn_k}
 
 X = T.tensor4("input")
-y = T.ivector("target")
+y = T.imatrix("target")
 
 l_in = InputLayer(shape=(None, 1, image_size, image_size), input_var=X)
 l = batch_norm(ConvLayer(l_in, num_filters=n_filters[0], filter_size=(3, 3), \

@@ -59,7 +59,7 @@ meta_data["num_output"] = 2
 
 print "... setting up the network"
 X = T.tensor4("input")
-y = T.ivector("target")
+y = T.imatrix("target")
 
 l_in = InputLayer(shape=(None, 1, image_size, image_size), input_var=X)
 l_noise = DropoutLayer(l_in, p=dropout)
