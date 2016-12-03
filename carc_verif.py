@@ -82,6 +82,7 @@ meta_data["expt_name"] = "ConvARC_VERIF_" + meta_data["dataset"] + "_" + meta_da
 for md in meta_data.keys():
 	print md, meta_data[md]
 
+expt_name = meta_data["expt_name"]
 learning_rate = meta_data["learning_rate"]
 image_size = meta_data["image_size"]
 attn_win = meta_data["attn_win"]
