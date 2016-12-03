@@ -123,18 +123,12 @@ class OmniglotVerif(Omniglot):
 		for i in xrange(batch_size/2):
 			# sampling dissimilar pairs
 			if within_alphabet:
-				# select a alphabet
 				alphbt_idx = choice(num_alphbts, p=p)
-				# select 2 distinct chars, by selecting its offset within the alphabet			
 				char_offset = choice(sizes[alphbt_idx], 2, replace=False)
-				# calculate char index	
 				dis_char_idxs = starts[alphbt_idx] + char_offset
 			else:
-				# sample 2 chars overall
 				dis_char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 2, replace=False)
-			
-			# sampling similar pairs
-			# similar pairs are by defnition within alphabet
+		
 			sim_char_idx = choice(range(starts[0], starts[-1] + sizes[-1]))
 			
 			X[i], X[i+batch_size] = data[dis_char_idxs, choice(20, 2)]
