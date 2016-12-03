@@ -23,8 +23,8 @@ y = T.ivector("target")
 
 num_states = 64
 l_in = InputLayer(shape=(None, 20, 512), input_var=X)
-l_lstm_up = LSTMLayer(l_in, num_states)
-l_lstm_down = LSTMLayer(l_in, num_states, backwards=True)
+l_lstm_up = LSTMLayer(l_in, num_states, learn_init=True, grad_clipping=1., )
+l_lstm_down = LSTMLayer(l_in, num_states, learn_init=True, grad_clipping=1., backwards=True)
 l_merge = ElemwiseSumLayer([l_lstm_up, l_lstm_down])
 l_rshp1 = ReshapeLayer(l_merge, (-1, num_states))
 l_dense = DenseLayer(l_rshp1, 1, W=HeNormal(gain='relu'), nonlinearity=rectify)
