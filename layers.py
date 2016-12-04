@@ -56,6 +56,7 @@ class BaseARC(lasagne.layers.Layer):
 		attn_win = self.attn_win
 		image_size = self.image_size
 
+		# (3, B)
 		center_y = gp[:, 0].dimshuffle([0, 'x'])
 		center_x = gp[:, 1].dimshuffle([0, 'x'])
 		delta = 1.0 - T.abs_(gp[:, 2]).dimshuffle([0, 'x'])
@@ -176,7 +177,7 @@ class ConvARC3DA(BaseARC):
 
 		self.num_filters = num_filters
 
-		BaseARC.__init__(self, incoming, attn_win ** 2, 5, lstm_states, image_size, \
+		BaseARC.__init__(self, incoming, attn_win ** 2, 3 + num_filters, lstm_states, image_size, \
 					attn_win, glimpses, fg_bias_init, final_state_only, **kwargs)
 
 	def attend(self, I, H, W):
@@ -184,17 +185,19 @@ class ConvARC3DA(BaseARC):
 
 		gp = T.dot(W, H.T).T
 
-		center_z = gp[:, 3].dimshuffle(0, 'x')
-		gamma_z = T.exp(-T.abs_(gp[:, 4])).dimshuffle([0, 'x'])
-		center_z = (num_filters - 1) * (center_z + 1.0) / 2.0
+		# ((3 + num_filters, lstm_states) * (B, lstm_states).T).T
+		# (3 + num_filters, B).T = (B, 3 + num_filters)
+		# first 3 are used in calculating attention in x and y directions
+		# rest num_filters are used in calculating depth attention
 
-		c = np.arange(num_filters, dtype=dtype)
-		F_Z = 1.0 + ((c - center_z) / gamma_z) ** 2
-		F_Z = 1.0 / (PI * gamma_z * F_Z)
-		F_Z = F_Z / (F_Z.sum(axis=1).dimshuffle([0, 'x']) + 1e-4)
-		FM = I * F_Z.dimshuffle([0, 1, 'x', 'x'])
-		FM = FM.sum(axis=1)
+		# softmax is row wise, on (B, num_filters) 
+		depth_attn_w = T.nnet.nnet.softmax(gp[:, 3:])
+		
+		# (B, C, 0, 1) * (B, C, 1, 1)
+		M = I * depth_attn_w.dimshuffle([0, 1, 'x', 'x']) # (B, C, 0, 1)
+		M = M.sum(axis=1) # (B, 0, 1)
 
 		F_X, F_Y = self.get_filterbanks(gp)
-		G = batched_dot(batched_dot(F_Y, FM), F_X.transpose([0, 2, 1]))
+		G = batched_dot(batched_dot(F_Y, M), F_X.transpose([0, 2, 1]))
+		
 		return G
