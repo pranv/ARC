@@ -16,7 +16,7 @@ from lasagne.objectives import binary_crossentropy, binary_accuracy
 from lasagne.updates import adam
 from lasagne.layers import helper
 
-from layers import ConvARC
+from layers import ConvARC3DA
 from data_workers import OmniglotVerif
 from main import train, test, serialize, deserialize
 
@@ -77,7 +77,7 @@ parser.add_argument("--wrn-depth", type=int, default=3, help="the resnet has dep
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
-meta_data["expt_name"] = "ConvARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
+meta_data["expt_name"] = "ConvARC3DA_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
@@ -122,7 +122,7 @@ for _ in range(1, (wrn_n+2)):
 bn_post_conv = BatchNormLayer(l)
 bn_post_relu = NonlinearityLayer(bn_post_conv, rectify)
 
-l_carc = ConvARC(bn_post_relu, num_filters=n_filters[2], lstm_states=lstm_states, image_size=16, 
+l_carc = ConvARC3DA(bn_post_relu, num_filters=n_filters[2], lstm_states=lstm_states, image_size=16, 
 					attn_win=attn_win, glimpses=glimpses, fg_bias_init=fg_bias_init)
 l_y = DenseLayer(l_carc, num_units=1, nonlinearity=sigmoid)
 
