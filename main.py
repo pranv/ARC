@@ -79,7 +79,7 @@ def train(train_fn, val_fn, worker, meta_data, get_params):
 def test(test_fn, worker, meta_data):
 	print "... testing"
 
-	test_num_batches = 2000
+	test_num_batches = 500
 
 	net_test_loss, net_test_acc = 0.0, 0.0
 	for i in range(test_num_batches):
