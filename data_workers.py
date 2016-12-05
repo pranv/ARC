@@ -149,7 +149,7 @@ class OmniglotVerif(Omniglot):
 		return X, y
 
 
-class OmniglotOS(Omniglot):
+class OmniglotOSFC(Omniglot):
 	def __init__(self, f_embedder, embedding_dim, path='data/omniglot.npy', num_trails=8, image_size=32, \
 		data_split=[20, 10], within_alphabet=True):
 		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
@@ -217,7 +217,7 @@ class OmniglotOS(Omniglot):
 		return X, y
 
 
-class OmniglotOSRaw(Omniglot):
+class OmniglotOSNaive(Omniglot):
 	def __init__(self, path='data/omniglot.npy', num_trails=8, image_size=32, \
 		data_split=[20, 10], within_alphabet=True):
 		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
