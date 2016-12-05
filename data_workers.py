@@ -244,7 +244,7 @@ class OmniglotOSRaw(Omniglot):
 
 		num_alphbts = len(starts)
 
-		X = np.zeros((num_trails, 20, image_size, image_size))
+		X = np.zeros((num_trails * 40, 1, image_size, image_size))
 		y = np.zeros((num_trails), dtype='int32')
 		
 		for trail in xrange(num_trails):
@@ -262,16 +262,15 @@ class OmniglotOSRaw(Omniglot):
 			T[:20] = data[char_idxs, choice(20)]
 			T[20:] = data[key_idx, choice(20)]
 			
-			if part == 'train':
-				T = self.augmentor.augment_batch(T)
-			else:
-				T = T / 255.0
-		
+			T = T / 255.0
 			T = T - self.mean_pixel
 			T = T[:, np.newaxis]
 			T = T.astype(theano.config.floatX)
 
-			X[trail] = embedder(T)
+			k = trail * 20
+			X[k:k+20] = T[:20]
+			k = num_trails * 20 + trail * 20
+			X[k:k+20] = T[20:]
 			y[trail] = key
 
 		X = X.astype(theano.config.floatX)
