@@ -218,8 +218,7 @@ class OmniglotOSFC(Omniglot):
 
 
 class OmniglotOSNaive(Omniglot):
-	def __init__(self, path='data/omniglot.npy', image_size=32, \
-		data_split=[20, 10], within_alphabet=True):
+	def __init__(self, path='data/omniglot.npy', image_size=32, within_alphabet=True):
 		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
 		
 		def size2p(size):
