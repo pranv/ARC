@@ -84,6 +84,7 @@ print "... compiling"
 train_fn = theano.function([X, y], outputs=loss, updates=updates)
 val_fn = theano.function([X, y], outputs=[loss, accuracy])
 embed_fn = theano.function([X], outputs=embedding)
+op_fn = theano.function([X], outputs=prediction_clean)
 
 if meta_data["reload_weights"]:
 	print "... loading pretrained weights"
@@ -106,3 +107,4 @@ if meta_data["testing"]:
 serialize(params, expt_name + '.params')
 serialize(meta_data, expt_name + '.mtd')
 serialize(embed_fn, expt_name + '.emf')
+serialize(op_fn, expt_name + '.opf')
