@@ -218,7 +218,7 @@ class OmniglotOSFC(Omniglot):
 
 
 class OmniglotOSNaive(Omniglot):
-	def __init__(self, path='data/omniglot.npy', num_trails=8, image_size=32, \
+	def __init__(self, path='data/omniglot.npy', image_size=32, \
 		data_split=[20, 10], within_alphabet=True):
 		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
 		
@@ -231,7 +231,6 @@ class OmniglotOSNaive(Omniglot):
 		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
 
 		self.p = p
-		self.num_trails = num_trails
 
 	def fetch_batch(self, part):
 		data = self.data
@@ -240,18 +239,16 @@ class OmniglotOSNaive(Omniglot):
 		p = self.p[part]
 		image_size = self.image_size
 		within_alphabet = self.within_alphabet
-		num_trails = self.num_trails
 
 		num_alphbts = len(starts)
 
-		X = np.zeros((num_trails * 40, 1, image_size, image_size))
-		y = np.zeros((num_trails), dtype='int32')
+		X = np.zeros((20 * 40, 1, image_size, image_size))
+		y = np.zeros((20), dtype='int32')
 		
-		for trail in xrange(num_trails):
+		for alphabet in xrange(20):
 			if within_alphabet:
-				alphbt_idx = choice(num_alphbts, p=p)
-				char_offsets = choice(sizes[alphbt_idx], 20, replace=False)
-				char_idxs = starts[alphbt_idx] + char_offsets
+				char_offsets = choice(sizes[alphabet], 20, replace=False)
+				char_idxs = starts[alphabet] + char_offsets
 			else:
 				char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 20, replace=False)
 			
@@ -267,11 +264,11 @@ class OmniglotOSNaive(Omniglot):
 			T = T[:, np.newaxis]
 			T = T.astype(theano.config.floatX)
 
-			k = trail * 20
+			k = alphabet * 20
 			X[k:k+20] = T[:20]
-			k = num_trails * 20 + trail * 20
+			k = 20 * 20 + alphabet * 20
 			X[k:k+20] = T[20:]
-			y[trail] = key
+			y[alphabet] = key
 
 		X = X.astype(theano.config.floatX)
 		
