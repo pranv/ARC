@@ -273,3 +273,34 @@ class OmniglotOSNaive(Omniglot):
 		X = X.astype(theano.config.floatX)
 		
 		return X, y
+
+
+class OmniglotOSLake(object):
+	def __init__(self, image_size=32):
+		X = np.load('data/one_shot/X.npy')
+		y = np.load('data/one_shot/y.npy')
+
+		# resize the images
+		resized_X = np.zeros((20, 800, image_size, image_size), dtype='uint8')
+		for i in xrange(20):
+			for j in xrange(800):
+				resized_X[i, j] = resize(X[i, j], (image_size, image_size))
+		X = resized_X
+
+		self.mean_pixel = 0.080515682304961422 # dataset mean pixel
+
+		self.X = X
+		self.y = y
+
+	def fetch_batch(self):
+		X = self.X
+		y = self.y
+
+		X = X / 255.0
+		X = X - self.mean_pixel
+		X = X[:, :, np.newaxis]
+		X = X.astype(theano.config.floatX)
+
+		y = y.astype('int32')
+
+		return X, y
