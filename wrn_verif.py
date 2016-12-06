@@ -18,7 +18,7 @@ from lasagne.updates import adam
 from lasagne.layers import helper
 
 from data_workers import OmniglotVerif
-from main import train, test, save
+from main import train, test, serialize, deserialize
 
 import sys
 sys.setrecursionlimit(10000)
@@ -66,12 +66,15 @@ parser.add_argument("--n-iter", type=int, default=100000, help="number of iterat
 parser.add_argument("--wrn-depth", type=int, default=3, help="the resnet has depth equal to 6d+12")
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
+parser.add_argument("--reload-weights", action="store_true", default=False, help="use pretrained weights")
+
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "WRN_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
 
+expt_name = meta_data["expt_name"]
 learning_rate = meta_data["learning_rate"]
 image_size = meta_data["image_size"]
 batch_size = meta_data["batch_size"]
@@ -128,6 +131,12 @@ print "number of parameters: ", meta_data["num_param"]
 print "... compiling"
 train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
 val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
+op_fn = theano.function([X], outputs=prediction_clean)
+
+if meta_data["reload_weights"]:
+	print "... loading pretrained weights"
+	params = deserialize(expt_name + '.params')
+	helper.set_all_param_values(l_y, params)
 
 print "... loading dataset"
 if meta_data["dataset"] == "omniglot":
@@ -142,4 +151,7 @@ if meta_data["testing"]:
 	helper.set_all_param_values(l_y, best_params)
 	meta_data = test(val_fn, worker, meta_data)
 
-save(meta_data, best_params)
+serialize(params, expt_name + '.params')
+serialize(meta_data, expt_name + '.mtd')
+serialize(embed_fn, expt_name + '.emf')
+serialize(op_fn, expt_name + '.opf')
