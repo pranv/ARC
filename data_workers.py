@@ -11,9 +11,7 @@ from main import serialize, deserialize
 
 
 class Omniglot(object):
-	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32, \
-		data_split=[30, 10], within_alphabet=True, flip=True, scale=0.2, \
-		rotation_deg=20, shear_deg=10, translation_px=5):
+	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32):
 		"""
 		path: path to omniglot.npy file produced by "data/setup_omniglot.py" script
 		batch_size: the output is (2 * batch size, 1, image_size, image_size)
@@ -31,7 +29,6 @@ class Omniglot(object):
 			shear_deg
 			translation_px: in both x and y directions
 		"""
-		
 		chars = np.load(path)
 
 		# resize the images
@@ -55,14 +52,6 @@ class Omniglot(object):
 							16, 52, 47, 40, 26, 40, 41, 33, 14, 42, 23, 17, 55, 20, 26, 26, 26,
 							26, 26, 45, 45, 41, 26, 47, 40, 30, 45, 46, 28, 23, 25, 42, 26]
 
-		# slicing indices for splitting a_start & a_size
-		i = data_split[0]
-		j = data_split[0] + data_split[1]
-		starts = {}
-		starts['train'], starts['val'], starts['test'] = a_start[:i], a_start[i:j], a_start[j:]
-		sizes = {}
-		sizes['train'], sizes['val'], sizes['test']  = a_size[:i], a_size[i:j], a_size[j:]
-		
 		# each alphabet/language has different number of characters.
 		# in order to uniformly sample all characters, we need weigh the probability 
 		# of sampling a alphabet by its size. p is that probability
@@ -70,31 +59,29 @@ class Omniglot(object):
 			s = np.array(size).astype('float64')
 			return s / s.sum()
 
-		p = {}
-		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
+		self.size2p = size2p
 
+		self.data = chars
+		self.a_start = a_start
+		self.a_size = a_size
+		self.image_size = image_size
+		self.batch_size = batch_size
+
+		flip = True
+		scale = 0.2
+		rotation_deg = 20
+		shear_deg = 10
+		translation_px = 5
 		self.augmentor = ImageAugmenter(image_size, image_size,
                  hflip=flip, vflip=flip,
                  scale_to_percent=1.0+scale, rotation_deg=rotation_deg, shear_deg=shear_deg,
                  translation_x_px=translation_px, translation_y_px=translation_px)
 
-		self.data = chars
-		self.starts = starts
-		self.sizes = sizes
-		self.p = p
-		self.image_size = image_size
-		self.within_alphabet = within_alphabet
-		self.batch_size = batch_size
-
-	def fetch_batch(self, part):
-		pass
-
-
-class OmniglotVerif(Omniglot):
 	def fetch_batch(self, part):
 		"""
 			This outputs batch_size number of pairs
 			Thus the actual number of images outputted is 2 * batch_size
+			Say A & B form the half of a pair
 			The Batch is divided into 4 parts:
 				Dissimilar A 		Dissimilar B
 				Similar A 			Similar B
@@ -109,33 +96,59 @@ class OmniglotVerif(Omniglot):
 				Similar B 			3 * batch_size / 2 - batch_size
 
 		"""
+		pass
+
+
+class OmniglotVerif(Omniglot):
+	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32):
+		Omniglot.__init__(self, path, batch_size, image_size)
+
+		a_start = self.a_start
+		a_size = self.a_size
+
+		# slicing indices for splitting a_start & a_size
+		i = 30
+		j = 40
+		starts = {}
+		starts['train'], starts['val'], starts['test'] = a_start[:i], a_start[i:j], a_start[j:]
+		sizes = {}
+		sizes['train'], sizes['val'], sizes['test']  = a_size[:i], a_size[i:j], a_size[j:]
+		
+		size2p = self.size2p
+
+		p = {}
+		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
+
+		self.starts = starts
+		self.sizes = sizes
+		self.p = p
+
+	def fetch_batch(self, part):
 		data = self.data
 		starts = self.starts[part]
 		sizes = self.sizes[part]
 		p = self.p[part]
 		image_size = self.image_size
-		within_alphabet = self.within_alphabet
 		batch_size = self.batch_size
 
 		num_alphbts = len(starts)
 
 		X = np.zeros((2 * batch_size, image_size, image_size), dtype='uint8')
-		for i in xrange(batch_size/2):
-			if within_alphabet:
-				alphbt_idx = choice(num_alphbts, p=p)
-				char_offset = choice(sizes[alphbt_idx], 2, replace=False)
-				dis_char_idxs = starts[alphbt_idx] + char_offset
-			else:
-				dis_char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 2, replace=False)
-		
-			sim_char_idx = choice(range(starts[0], starts[-1] + sizes[-1]))
+		for i in xrange(batch_size / 2):
+			# choose similar chars
+			same_idx = choice(range(starts[0], starts[-1] + sizes[-1]))
+
+			# choose dissimilar chars within alphabet
+			alphbt_idx = choice(num_alphbts, p=p)
+			char_offset = choice(sizes[alphbt_idx], 2, replace=False)
+			diff_idx = starts[alphbt_idx] + char_offset
 			
-			X[i], X[i+batch_size] = data[dis_char_idxs, choice(20, 2)]
-			X[i+batch_size/2], X[i+3*batch_size/2] = data[sim_char_idx, choice(20, 2, replace=False)]	
+			X[i], X[i + batch_size] = data[diff_idx, choice(20, 2)]
+			X[i + batch_size / 2], X[i + 3 * batch_size / 2] = data[same_idx, choice(20, 2, replace=False)]	
 		
 		y = np.zeros((batch_size, 1), dtype='int32')
-		y[:batch_size/2] = 0
-		y[batch_size/2:] = 1
+		y[:batch_size / 2] = 0
+		y[batch_size / 2:] = 1
 
 		if part == 'train':
 			X = self.augmentor.augment_batch(X)
@@ -149,157 +162,82 @@ class OmniglotVerif(Omniglot):
 		return X, y
 
 
-class OmniglotOSFC(Omniglot):
-	def __init__(self, f_embedder, embedding_dim, path='data/omniglot.npy', num_trails=8, image_size=32, \
-		data_split=[20, 10], within_alphabet=True):
-		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
-		
+class OmniglotOS(Omniglot):
+	def __init__(self, path='data/omniglot.npy', batch_size=128, image_size=32):
+		Omniglot.__init__(self, path, batch_size, image_size)
 
-		def size2p(size):
-			s = (np.array(size) >= 20) * np.array(size).astype('float64')
-			return s / s.sum()
+		a_start = self.a_start
+		a_size = self.a_size
 
-		sizes = self.sizes
+		num_train_chars = a_start[29] + a_size[29]
+
+		train = self.data[:num_train_chars, :16]	# (964, 16, H, W)
+		val = self.data[:num_train_chars, 16:] 	# (964, 4, H, W)
+		test = self.data[num_train_chars:] 	# (659, 20, H, W)
+
+		# slicing indices for splitting a_start & a_size
+		i = 30
+		starts = {}
+		starts['train'], starts['val'], starts['test'] = a_start[:i], a_start[:i], a_start[i:]
+		sizes = {}
+		sizes['train'], sizes['val'], sizes['test']  = a_size[:i], a_size[:i], a_size[i:]
+
+		size2p = self.size2p
+
 		p = {}
 		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
+		
+		data = {}
+		data['train'], data['val'], data['test'] = train, val, test
 
+		num_drawers = {}
+		num_drawers['train'], num_drawers['val'], num_drawers['test'] = 16, 4, 20
+
+		self.data = data
+		self.starts = starts
+		self.sizes = sizes
 		self.p = p
-		self.embedding_dim = embedding_dim
-		self.embedder = deserialize(f_embedder + '.emf')
-		self.num_trails = num_trails
+		self.num_drawers = num_drawers
 
 	def fetch_batch(self, part):
-		data = self.data
+		data = self.data[part]
 		starts = self.starts[part]
 		sizes = self.sizes[part]
 		p = self.p[part]
+		num_drawers = self.num_drawers[part]
+		
 		image_size = self.image_size
-		within_alphabet = self.within_alphabet
-		num_trails = self.num_trails
+		batch_size = self.batch_size
 
 		num_alphbts = len(starts)
 
-		embedder = self.embedder
-		embedding_dim = self.embedding_dim
+		X = np.zeros((2 * batch_size, image_size, image_size), dtype='uint8')
+		for i in xrange(batch_size / 2):
+			# choose similar chars
+			same_idx = choice(range(data.shape[0]))
 
-		X = np.zeros((num_trails, 20, embedding_dim))
-		y = np.zeros((num_trails), dtype='int32')
-		
-		for trail in xrange(num_trails):
-			if within_alphabet:
-				alphbt_idx = choice(num_alphbts, p=p)
-				char_offsets = choice(sizes[alphbt_idx], 20, replace=False)
-				char_idxs = starts[alphbt_idx] + char_offsets
-			else:
-				char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 20, replace=False)
+			# choose dissimilar chars within alphabet
+			alphbt_idx = choice(num_alphbts, p=p)
+			char_offset = choice(sizes[alphbt_idx], 2, replace=False)
+			diff_idx = starts[alphbt_idx] + char_offset
 			
-			key = choice(20)
-			key_idx = char_idxs[key]
-
-			T = np.zeros((2 * 20, image_size, image_size), dtype='uint8')
-			T[:20] = data[char_idxs, choice(20)]
-			T[20:] = data[key_idx, choice(20)]
-			
-			if part == 'train':
-				T = self.augmentor.augment_batch(T)
-			else:
-				T = T / 255.0
+			X[i], X[i + batch_size] = data[diff_idx, choice(num_drawers, 2)]
+			X[i + batch_size / 2], X[i + 3 * batch_size / 2] = data[same_idx, choice(num_drawers, 2, replace=False)]	
 		
-			T = T - self.mean_pixel
-			T = T[:, np.newaxis]
-			T = T.astype(theano.config.floatX)
+		y = np.zeros((batch_size, 1), dtype='int32')
+		y[:batch_size / 2] = 0
+		y[batch_size / 2:] = 1
 
-			X[trail] = embedder(T)
-			y[trail] = key
-
-		X = X.astype(theano.config.floatX)
+		if part == 'train':
+			X = self.augmentor.augment_batch(X)
+		else:
+			X = X / 255.0
 		
-		return X, y
-
-
-class OmniglotOSNaive(Omniglot):
-	def __init__(self, path='data/omniglot.npy', image_size=32, within_alphabet=True):
-		Omniglot.__init__(self, path, 20, image_size, data_split, within_alphabet)
-		
-		def size2p(size):
-			s = (np.array(size) >= 20) * np.array(size).astype('float64')
-			return s / s.sum()
-
-		sizes = self.sizes
-		p = {}
-		p['train'], p['val'], p['test'] = size2p(sizes['train']), size2p(sizes['val']), size2p(sizes['test'])
-
-		self.p = p
-
-	def fetch_batch(self, part):
-		data = self.data
-		starts = self.starts[part]
-		sizes = self.sizes[part]
-		p = self.p[part]
-		image_size = self.image_size
-		within_alphabet = self.within_alphabet
-
-		num_alphbts = len(starts)
-
-		X = np.zeros((20 * 40, 1, image_size, image_size))
-		y = np.zeros((20), dtype='int32')
-		
-		for alphabet in xrange(20):
-			if within_alphabet:
-				char_offsets = choice(sizes[alphabet], 20, replace=False)
-				char_idxs = starts[alphabet] + char_offsets
-			else:
-				char_idxs = choice(range(starts[0], starts[-1] + sizes[-1]), 20, replace=False)
-			
-			key = choice(20)
-			key_idx = char_idxs[key]
-
-			T = np.zeros((2 * 20, image_size, image_size), dtype='uint8')
-			T[:20] = data[char_idxs, choice(20)]
-			T[20:] = data[key_idx, choice(20)]
-			
-			T = T / 255.0
-			T = T - self.mean_pixel
-			T = T[:, np.newaxis]
-			T = T.astype(theano.config.floatX)
-
-			k = alphabet * 20
-			X[k:k+20] = T[:20]
-			k = 20 * 20 + alphabet * 20
-			X[k:k+20] = T[20:]
-			y[alphabet] = key
-
-		X = X.astype(theano.config.floatX)
-		
-		return X, y
-
-
-class OmniglotOSLake(object):
-	def __init__(self, image_size=32):
-		X = np.load('data/one_shot/X.npy')
-		y = np.load('data/one_shot/y.npy')
-
-		# resize the images
-		resized_X = np.zeros((20, 800, image_size, image_size), dtype='uint8')
-		for i in xrange(20):
-			for j in xrange(800):
-				resized_X[i, j] = resize(X[i, j], (image_size, image_size))
-		X = resized_X
-
-		self.mean_pixel = 0.080515682304961422 # dataset mean pixel
-
-		self.X = X
-		self.y = y
-
-	def fetch_batch(self):
-		X = self.X
-		y = self.y
-
-		X = X / 255.0
 		X = X - self.mean_pixel
-		X = X[:, :, np.newaxis]
+		X = X[:, np.newaxis]
 		X = X.astype(theano.config.floatX)
 
-		y = y.astype('int32')
-
 		return X, y
+
+
+
