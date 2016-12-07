@@ -219,7 +219,7 @@ class OmniglotOS(Omniglot):
 			# choose dissimilar chars within alphabet
 			alphbt_idx = choice(num_alphbts, p=p)
 			char_offset = choice(sizes[alphbt_idx], 2, replace=False)
-			diff_idx = starts[alphbt_idx] + char_offset
+			diff_idx = starts[alphbt_idx] + char_offset - starts[0]
 			
 			X[i], X[i + batch_size] = data[diff_idx, choice(num_drawers, 2)]
 			X[i + batch_size / 2], X[i + 3 * batch_size / 2] = data[same_idx, choice(num_drawers, 2, replace=False)]	
@@ -236,7 +236,7 @@ class OmniglotOS(Omniglot):
 		X = X - self.mean_pixel
 		X = X[:, np.newaxis]
 		X = X.astype(theano.config.floatX)
-
+		
 		return X, y
 
 
