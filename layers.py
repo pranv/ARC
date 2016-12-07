@@ -157,7 +157,7 @@ class ConvARC(BaseARC):
 
 		self.num_filters = num_filters
 
-		BaseARC.__init__(self, incoming, num_filters * attn_win ** 2, 5, lstm_states, \
+		BaseARC.__init__(self, incoming, attn_win ** 2, 5, lstm_states, \
 			image_size, attn_win, glimpses, fg_bias_init, final_state_only, **kwargs)
 
 	def attend(self, I, H, W):
