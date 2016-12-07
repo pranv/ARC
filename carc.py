@@ -17,7 +17,7 @@ from lasagne.updates import adam
 from lasagne.layers import helper
 
 from layers import ConvARC
-from data_workers import OmniglotVerif, OmniglotOS
+from data_workers import OmniglotOS
 from main import train, test, serialize, deserialize
 
 import sys
@@ -56,11 +56,11 @@ def residual_block(l, increase_dim=False, projection=True, first=False, filters=
 
 parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameters")
 parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
-parser.add_argument("--wrn-depth", type=int, default=3, help="the resnet has depth equal to 4d+7")
+parser.add_argument("--wrn-depth", type=int, default=4, help="the resnet has depth equal to 4d+7")
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
-meta_data["expt_name"] = "ConvARC_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
+meta_data["expt_name"] = "ConvARC_OS_" + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
@@ -73,7 +73,7 @@ glimpses = 8
 lstm_states = 256
 fg_bias_init = 0.2
 batch_size = 128
-n_iter = 2000
+meta_data["n_iter"] = n_iter = 100000
 wrn_n = meta_data["wrn_depth"]
 wrn_k = meta_data["wrn_width"]
 
@@ -132,14 +132,13 @@ embed_fn = theano.function([X], outputs=embedding)
 op_fn = theano.function([X], outputs=prediction_clean)
 
 print "... loading dataset"
-#worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, data_split=[30, 10])
 worker = OmniglotOS(image_size=image_size, batch_size=batch_size)
 
-meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \
+meta_data, params = train(train_fn, val_fn, worker, meta_data, \
 	get_params=lambda: helper.get_all_param_values(l_y))
 
 print "... testing"
-helper.set_all_param_values(l_y, best_params)
+helper.set_all_param_values(l_y, params)
 meta_data = test(val_fn, worker, meta_data)
 
 serialize(params, expt_name + '.params')
