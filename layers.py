@@ -157,32 +157,15 @@ class ConvARC(BaseARC):
 
 		self.num_filters = num_filters
 
-		BaseARC.__init__(self, incoming, attn_win ** 2, 5, lstm_states, \
+		BaseARC.__init__(self, incoming, num_filters * attn_win ** 2, 3, lstm_states, \
 			image_size, attn_win, glimpses, fg_bias_init, final_state_only, **kwargs)
 
 	def attend(self, I, H, W):
+		I = I.reshape((-1, self.image_size, self.image_size))
 		num_filters = self.num_filters
-
-		# ((5, lstm_states) * (B, lstm_states).T).T
-		# (5, B).T = (B, 5)
 		gp = T.dot(W, H.T).T
-
-		# first 3 are used in calculating attention in x and y directions
-		# rest num_filters are used in calculating depth attention
-
-		center_z = gp[:, 3].dimshuffle(0, 'x')
-		gamma_z = T.exp(-T.abs_(gp[:, 4])).dimshuffle([0, 'x'])
-		center_z = (num_filters - 1) * (center_z + 1.0) / 2.0
-
-		c = np.arange(num_filters, dtype=dtype)
-		F_Z = 1.0 + ((c - center_z) / gamma_z) ** 2
-		F_Z = 1.0 / (PI * gamma_z * F_Z)
-		F_Z = F_Z / (F_Z.sum(axis=1).dimshuffle([0, 'x']) + 1e-4)
-
-		# (B, C, 0, 1) * (B, C, 1, 1)
-		FM = I * F_Z.dimshuffle([0, 1, 'x', 'x'])
-		FM = FM.sum(axis=1) # (B, 0, 1)
-
 		F_X, F_Y = self.get_filterbanks(gp)
-		G = batched_dot(batched_dot(F_Y, FM), F_X.transpose([0, 2, 1]))
+		F_X = F_X.repeat(num_filters, axis=0)
+		F_Y = F_Y.repeat(num_filters, axis=0)
+		G = batched_dot(batched_dot(F_Y, I), F_X.transpose([0, 2, 1]))
 		return G
