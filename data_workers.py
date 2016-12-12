@@ -220,7 +220,7 @@ class OmniglotOS(Omniglot):
 			alphbt_idx = choice(num_alphbts, p=p)
 			char_offset = choice(sizes[alphbt_idx], 2, replace=False)
 			diff_idx = starts[alphbt_idx] + char_offset - starts[0]
-			
+
 			X[i], X[i + batch_size] = data[diff_idx, choice(num_drawers, 2)]
 			X[i + batch_size / 2], X[i + 3 * batch_size / 2] = data[same_idx, choice(num_drawers, 2, replace=False)]	
 		
@@ -240,4 +240,32 @@ class OmniglotOS(Omniglot):
 		return X, y
 
 
+class OmniglotOSLake(object):
+	def __init__(self, image_size=32):
+		X = np.load('data/one_shot/X.npy')
+		y = np.load('data/one_shot/y.npy')
 
+		# resize the images
+		resized_X = np.zeros((20, 800, image_size, image_size), dtype='uint8')
+		for i in xrange(20):
+			for j in xrange(800):
+				resized_X[i, j] = resize(X[i, j], (image_size, image_size))
+		X = resized_X
+
+		self.mean_pixel = 0.0805 # dataset mean pixel
+
+		self.X = X
+		self.y = y
+
+	def fetch_batch(self):
+		X = self.X
+		y = self.y
+
+		X = X / 255.0
+		X = X - self.mean_pixel
+		X = X[:, :, np.newaxis]
+		X = X.astype(theano.config.floatX)
+
+		y = y.astype('int32')
+
+		return X, y
