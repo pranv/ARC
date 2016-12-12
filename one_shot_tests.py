@@ -1,5 +1,5 @@
 num_trials = 128
-predictor_file = 'ARC_OS.opf'
+predictor_file = 'ConvARC_OS.opf'
 embedder_file = None
 embedding_size = 512
 
@@ -19,6 +19,7 @@ else:
         embeddings = embedder(X).reshape(-1, 20, embedding_size)
         return predictor(embeddings)
 
+print "\n ... testing on the set by Brenden Lake et al"
 
 worker = OmniglotOSLake()
 X_OS, t_OS = worker.fetch_batch()
@@ -36,7 +37,9 @@ for run in range(20):
 print "accuracy: ", np.mean(all_acc), "%"
 
 
-worker = OmniglotVinyals()
+print "\n\n ... testing on the method of Vinyals et al"
+
+worker = OmniglotVinyals(num_trials=20)
 
 all_acc = []
 for run in range(20):
