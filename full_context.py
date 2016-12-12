@@ -1,10 +1,10 @@
-expt_name = 'ARC_OSFC'
-emf = 'ARC_OS.emf'
-embedding_size = 512
+expt_name = 'ConvARC_OSFC'
+emf = 'ConvARC_OS.emf'
+embedding_size = 256
 
-num_trials = 128
+num_trials = 32
 image_size = 32
-num_states = 64
+num_states = 128
 
 import numpy as np
 from numpy.random import choice
@@ -133,7 +133,7 @@ val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 op_fn = theano.function([X], outputs=prediction)
 
 meta_data = {}
-meta_data["n_iter"] = 25000
+meta_data["n_iter"] = 50000
 meta_data["num_output"] = 20
 
 meta_data, params = train(train_fn, val_fn, worker, meta_data, get_params=lambda: helper.get_all_param_values(l_y))
