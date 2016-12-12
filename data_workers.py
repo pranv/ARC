@@ -269,3 +269,50 @@ class OmniglotOSLake(object):
 		y = y.astype('int32')
 
 		return X, y
+
+
+class OmniglotVinyals(Omniglot):
+	def __init__(self, path='data/omniglot.npy', num_trials=128, image_size=32):
+		Omniglot.__init__(self, path, 0, image_size)
+		del self.batch_size
+		self.num_trials = num_trials
+
+	def fetch_batch(self):
+		data = self.data
+		image_size = self.image_size
+		num_trials = self.num_trials
+
+		X = np.zeros((num_trials * 40, image_size, image_size), dtype='uint8')
+		y = np.zeros(num_trials, dtype='int32')
+        
+		for t in range(num_trials):
+			trial = np.zeros((2 * 20, image_size, image_size), dtype='uint8')
+			char_choices = range(1200, 1623) # set of all possible chars
+			key_char_idx = choice(char_choices) # this will be the char to be matched
+
+			# sample 19 other chars excluding key
+			char_choices.remove(key_char_idx)
+			other_char_idxs = choice(char_choices, 19)
+
+			pos = range(20)
+			key_char_pos = choice(pos) # position of the key char out of 20 pairs
+			pos.remove(key_char_pos)
+			other_char_pos = np.array(pos, dtype='int32')
+
+			trial[key_char_pos] = data[key_char_idx, choice(20)]
+			trial[other_char_pos] = data[other_char_idxs, choice(20)]  
+			trial[20:] = data[key_char_idx, choice(20)]
+
+			k = t * 20
+			X[k:k+20] = trial[:20]
+			k = k + num_trials * 20
+			X[k:k+20] = trial[20:]
+
+			y[t] = key_char_pos
+
+		X = X / 255.0
+		X = X - self.mean_pixel
+		X = X[:, np.newaxis]
+		X = X.astype(theano.config.floatX)
+
+		return X, y
