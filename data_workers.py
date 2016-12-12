@@ -292,16 +292,17 @@ class OmniglotVinyals(Omniglot):
 
 			# sample 19 other chars excluding key
 			char_choices.remove(key_char_idx)
-			other_char_idxs = choice(char_choices, 19)
+			other_char_idxs = choice(char_choices, 19, replace=False)
 
 			pos = range(20)
 			key_char_pos = choice(pos) # position of the key char out of 20 pairs
 			pos.remove(key_char_pos)
 			other_char_pos = np.array(pos, dtype='int32')
 
-			trial[key_char_pos] = data[key_char_idx, choice(20)]
-			trial[other_char_pos] = data[other_char_idxs, choice(20)]  
-			trial[20:] = data[key_char_idx, choice(20)]
+			drawers = choice(20, 2, replace=False)
+			trial[key_char_pos] = data[key_char_idx, drawers[0]]
+			trial[other_char_pos] = data[other_char_idxs, drawers[0]]  
+			trial[20:] = data[key_char_idx, drawers[1]]
 
 			k = t * 20
 			X[k:k+20] = trial[:20]
