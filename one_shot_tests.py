@@ -42,7 +42,7 @@ print "\n\n ... testing on the method of Vinyals et al"
 worker = OmniglotVinyals(num_trials=20)
 
 all_acc = []
-for run in range(20):
+for run in range(1000):
 	X, t = worker.fetch_batch()
 
 	y = predictor(X).reshape(20, 20).argmax(axis=1)
