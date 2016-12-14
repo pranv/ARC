@@ -55,18 +55,8 @@ parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameter
 parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
 parser.add_argument("--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
-parser.add_argument("--learning-rate", type=float, default=1e-3, help="learning rate")
-parser.add_argument("--image-size", type=int, default=32, help="side length of the square input image")
-
-parser.add_argument("--within-alphabet", action="store_false", help="select only the character pairs that within the alphabet ")
-parser.add_argument("--batch-size", type=int, default=128, help="batch size")
-parser.add_argument("--testing", action="store_true", help="report test set results")
-parser.add_argument("--n-iter", type=int, default=100000, help="number of iterations")
-
 parser.add_argument("--wrn-depth", type=int, default=3, help="the resnet has depth equal to 6d+12")
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
-
-parser.add_argument("--reload-weights", action="store_true", default=False, help="use pretrained weights")
 
 meta_data = vars(parser.parse_args())
 meta_data["expt_name"] = "WRN_VERIF_" + meta_data["dataset"] + "_" + meta_data["expt_name"]
@@ -75,14 +65,12 @@ for md in meta_data.keys():
 	print md, meta_data[md]
 
 expt_name = meta_data["expt_name"]
-learning_rate = meta_data["learning_rate"]
-image_size = meta_data["image_size"]
-batch_size = meta_data["batch_size"]
-n_iter = meta_data["n_iter"]
+learning_rate = 1e-3
+image_size = 64 # 32
+batch_size = 128
+n_iter = 100000
 wrn_n = meta_data["wrn_depth"]
 wrn_k = meta_data["wrn_width"]
-within_alphabet = meta_data["within_alphabet"]
-data_split = [30, 10]
 meta_data["num_output"] = 2
 
 
@@ -133,15 +121,12 @@ train_fn = theano.function(inputs=[X, y], outputs=loss, updates=updates)
 val_fn = theano.function(inputs=[X, y], outputs=[loss, accuracy])
 op_fn = theano.function([X], outputs=prediction_clean)
 
-if meta_data["reload_weights"]:
-	print "... loading pretrained weights"
-	params = deserialize(expt_name + '.params')
-	helper.set_all_param_values(l_y, params)
 
 print "... loading dataset"
-if meta_data["dataset"] == "omniglot":
-	worker = OmniglotVerif(image_size=image_size, batch_size=batch_size, \
-		data_split=data_split, within_alphabet=within_alphabet)
+if meta_data["dataset"] == 'omniglot':
+	worker = OmniglotOS(image_size=image_size, batch_size=batch_size)
+elif meta_data["dataset"] == 'lfw':
+	worker = LFWVerif(image_size=image_size, batch_size=batch_size)
 
 meta_data, best_params = train(train_fn, val_fn, worker, meta_data, \
 	get_params=lambda: helper.get_all_param_values(l_y))
@@ -153,5 +138,4 @@ if meta_data["testing"]:
 
 serialize(params, expt_name + '.params')
 serialize(meta_data, expt_name + '.mtd')
-serialize(embed_fn, expt_name + '.emf')
 serialize(op_fn, expt_name + '.opf')
