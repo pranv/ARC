@@ -133,7 +133,7 @@ class BaseARC(lasagne.layers.Layer):
 		if self.final_state_only:
 			return (input_shape[0], self.lstm_states) 
 		else:
-			return (2 * self.num_glimpses, input_shape[0], self.lstm_states)
+			return (2 * self.glimpses, input_shape[0], self.lstm_states)
 
 
 class SimpleARC(BaseARC):
