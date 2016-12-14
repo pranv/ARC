@@ -72,7 +72,7 @@ op_fn = theano.function([X], outputs=prediction_clean)
 print "... loading dataset"
 if meta_data["dataset"] == 'omniglot':
 	worker = OmniglotOS(image_size=image_size, batch_size=batch_size)
-else meta_data["dataset"] == 'lfw':
+elif meta_data["dataset"] == 'lfw':
 	worker = LFWVerif(image_size=image_size, batch_size=batch_size)
 
 meta_data, params = train(train_fn, val_fn, worker, meta_data, \
