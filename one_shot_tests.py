@@ -1,13 +1,14 @@
-num_trials = 128
-predictor_file = 'ConvARC_OS.opf'
-embedder_file = None
-embedding_size = 512
+predictor_file = 'ConvARC_OSFC.opf'
+embedder_file = 'ConvARC_OS.emf'
+embedding_size = 256
 
 
 import numpy as np
 
 from main import deserialize
 from data_workers import OmniglotOSLake, OmniglotVinyals
+
+np.random.seed(1969)
 
 
 if embedder_file is None:
@@ -42,7 +43,7 @@ print "\n\n ... testing on the method of Vinyals et al"
 worker = OmniglotVinyals(num_trials=20)
 
 all_acc = []
-for run in range(1000):
+for run in range(20):
 	X, t = worker.fetch_batch()
 
 	y = predictor(X).reshape(20, 20).argmax(axis=1)
