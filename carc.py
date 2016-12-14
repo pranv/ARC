@@ -56,6 +56,9 @@ def residual_block(l, increase_dim=False, projection=True, first=False, filters=
 
 parser = argparse.ArgumentParser(description="CLI for specifying hyper-parameters")
 parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment name(for logging purposes)")
+
+parser.add_argument("--dataset", type=str, default="omniglot", help="omniglot/LFW")
+
 parser.add_argument("--wrn-depth", type=int, default=4, help="the resnet has depth equal to 4d+7")
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
