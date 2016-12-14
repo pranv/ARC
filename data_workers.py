@@ -317,3 +317,99 @@ class OmniglotVinyals(Omniglot):
 		X = X.astype(theano.config.floatX)
 
 		return X, y
+
+
+class LFWVerif(object):
+    def __init__(self, batch_size = 128, split=[80, 10], image_size=64):
+        faces = np.load('data/LFW/faces.npy')
+        counts = np.load('data/LFW/counts.npy')
+        
+        num_people = len(counts)
+        num_train = int(np.round(split[0] / 100.0 * num_people))
+        num_val = int(np.round(split[1] / 100.0 * num_people))
+        num_test = num_people - num_train - num_val
+        
+        i = num_train
+        j = i + num_val
+        k = j + num_test
+        
+        num_faces_so_far = np.cumsum(counts)
+        train_faces = faces[:num_faces_so_far[i]]
+        val_faces = faces[num_faces_so_far[i]:num_faces_so_far[j]]
+        test_faces = faces[num_faces_so_far[j]:]
+        
+        self.mean_pixel = faces.mean() / 255.0
+        
+        train_counts = counts[:i]
+        val_counts = counts[i:j]
+        test_counts = counts[j:]
+        
+        faces = {}
+        faces['train'], faces['val'], faces['test'] = train_faces, val_faces, test_faces
+        
+        counts = {}
+        counts['train'], counts['val'], counts['test'] = train_counts, val_counts, test_counts
+    
+        self.i = i
+        self.j = j
+        self.k = k
+        
+        self.faces = faces
+        self.counts = counts
+        self.batch_size = batch_size
+        
+        vflip = False
+        hflip = True
+        scale = 0.2
+        rotation_deg = 15
+        shear_deg = 5
+        translation_px = 10
+        self.augmentor = ImageAugmenter(image_size, image_size,
+                 hflip=hflip, vflip=vflip,
+                 scale_to_percent=1.0+scale, rotation_deg=rotation_deg, shear_deg=shear_deg,
+                 translation_x_px=translation_px, translation_y_px=translation_px)
+
+    
+    def fetch_batch(self, part):
+        faces = self.faces[part]
+        counts = self.counts[part]
+        batch_size = self.batch_size
+        
+        num_people = counts.shape[0]
+        person_start_idx = np.cumsum(counts) - counts
+
+        X = np.zeros((batch_size * 2, 64, 64), dtype='uint8')
+        
+        person_idxs = choice(num_people, batch_size, replace=False)
+        face_sub_idxs = np.array([choice(counts[idx]) for idx in person_idxs])
+        face_idxs = person_start_idx[person_idxs]
+        net_index = face_idxs + face_sub_idxs
+        X[:batch_size/2] = faces[net_index[:batch_size/2]]
+        X[batch_size:3*batch_size/2] = faces[net_index[-batch_size/2:]]
+
+        # sample similar
+        similar_p = np.array(counts >= 2, dtype='float64')
+        similar_p /= similar_p.sum()
+        
+        person_idxs = choice(num_people, batch_size/2, replace=False, p=similar_p)
+        face_sub_idxs = np.array([choice(counts[idx], 2) for idx in person_idxs])
+        face_idxs = person_start_idx[person_idxs]
+        faces_idxsA = face_idxs + face_sub_idxs[:, 0]
+        faces_idxsB = face_idxs + face_sub_idxs[:, 1]
+        X[batch_size/2:batch_size] = faces[faces_idxsA]
+        X[-batch_size/2:] = faces[faces_idxsB]
+            
+        y = np.zeros((batch_size, 1), dtype='int32')
+        y[:batch_size / 2] = 0
+        y[batch_size / 2:] = 1
+        
+        if part == 'train':
+            X = self.augmentor.augment_batch(X)
+        else:
+            X = X / 255.0
+
+        X = X - self.mean_pixel
+        X = X[:, np.newaxis]
+        X = X.astype(theano.config.floatX)
+
+        return X, y 
