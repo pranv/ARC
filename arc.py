@@ -12,7 +12,7 @@ from lasagne.updates import adam
 from lasagne.layers import helper
 
 from layers import SimpleARC
-from data_workers import OmniglotOS
+from data_workers import OmniglotOS, LFWVerif
 from main import train, test, serialize, deserialize
 
 import argparse
@@ -23,19 +23,19 @@ parser.add_argument("-n", "--expt-name", type=str, default="", help="experiment 
 parser.add_argument("--dataset", type=str, default="omniglot", help="omniglot/LFW")
 
 meta_data = vars(parser.parse_args())
-meta_data["expt_name"] = "ARC_OS_" + meta_data["expt_name"]
+meta_data["expt_name"] = "ARC_" + meta_data["dataset"] + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
 
 expt_name = meta_data["expt_name"]
 learning_rate = 1e-4
-image_size = 32
-attn_win = 4
-glimpses = 8
+image_size = 64 # 32
+attn_win = 6 # 4
+glimpses = 4 #8
 lstm_states = 512
-fg_bias_init = 0.2
-dropout = 0.2
+fg_bias_init = 0.0 # 0.2
+dropout = 0.3 # 0.2
 meta_data["n_iter"] = n_iter = 1500000
 batch_size = 128
 meta_data["num_output"] = 2
@@ -70,7 +70,10 @@ embed_fn = theano.function([X], outputs=embedding)
 op_fn = theano.function([X], outputs=prediction_clean)
 
 print "... loading dataset"
-worker = OmniglotOS(image_size=image_size, batch_size=batch_size)
+if meta_data["dataset"] == 'omniglot':
+	worker = OmniglotOS(image_size=image_size, batch_size=batch_size)
+else meta_data["dataset"] == 'lfw':
+	worker = LFWVerif(image_size=image_size, batch_size=batch_size)
 
 meta_data, params = train(train_fn, val_fn, worker, meta_data, \
 		get_params=lambda: helper.get_all_param_values(l_y))
