@@ -17,7 +17,7 @@ from lasagne.updates import adam
 from lasagne.layers import helper
 
 from layers import ConvARC
-from data_workers import OmniglotOS
+from data_workers import OmniglotOS, LFWVerif
 from main import train, test, serialize, deserialize
 
 import sys
@@ -60,7 +60,7 @@ parser.add_argument("--wrn-depth", type=int, default=4, help="the resnet has dep
 parser.add_argument("--wrn-width", type=int, default=2, help="width multiplier for each WRN block")
 
 meta_data = vars(parser.parse_args())
-meta_data["expt_name"] = "ConvARC_OS_" + meta_data["expt_name"]
+meta_data["expt_name"] = "ConvARC_" + meta_data["dataset"] + meta_data["expt_name"]
 
 for md in meta_data.keys():
 	print md, meta_data[md]
@@ -132,7 +132,10 @@ embed_fn = theano.function([X], outputs=embedding)
 op_fn = theano.function([X], outputs=prediction_clean)
 
 print "... loading dataset"
-worker = OmniglotOS(image_size=image_size, batch_size=batch_size)
+if meta_data["dataset"] == 'omniglot':
+	worker = OmniglotOS(image_size=image_size, batch_size=batch_size)
+elif meta_data["dataset"] == 'lfw':
+	worker = LFWVerif(image_size=image_size, batch_size=batch_size)
 
 meta_data, params = train(train_fn, val_fn, worker, meta_data, \
 	get_params=lambda: helper.get_all_param_values(l_y))
