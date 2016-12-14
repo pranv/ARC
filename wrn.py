@@ -17,7 +17,7 @@ from lasagne.objectives import binary_crossentropy, binary_accuracy
 from lasagne.updates import adam
 from lasagne.layers import helper
 
-from data_workers import OmniglotVerif
+from data_workers import OmniglotVerif, LFWVerif
 from main import train, test, serialize, deserialize
 
 import sys
@@ -68,7 +68,7 @@ expt_name = meta_data["expt_name"]
 learning_rate = 1e-3
 image_size = 64 # 32
 batch_size = 128
-n_iter = 100000
+meta_data["n_iter"] = n_iter = 100000
 wrn_n = meta_data["wrn_depth"]
 wrn_k = meta_data["wrn_width"]
 meta_data["num_output"] = 2
