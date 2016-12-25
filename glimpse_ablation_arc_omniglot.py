@@ -30,7 +30,7 @@ def create_embedder_fn(glimpses):
     return embedding_fn
 
 
-worker = OmniglotOS(image_size=32, batch_size=128)
+worker = OmniglotOS(image_size=32, batch_size=1024)
 
 X_test, y_test = worker.fetch_batch('test')
 
@@ -51,7 +51,7 @@ for glimpses in range(1, 9):
 
     for i in range(2000):
         X_train, y_train = worker.fetch_batch('train')
-        print train_fn(embedding_fn(X_train), y_train)
+        train_fn(embedding_fn(X_train), y_train)
 
     X_train, y_train = worker.fetch_batch('train')
     train_loss = train_fn(embedding_fn(X_train), y_train)
