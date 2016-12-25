@@ -49,7 +49,7 @@ for glimpses in range(1, 9):
     train_fn = theano.function([X, y], outputs=loss, updates=updates)
     val_fn = theano.function([X, y], outputs=[loss, accuracy])
 
-    for i in range(2000):
+    for i in range(250):
         X_train, y_train = worker.fetch_batch('train')
         train_fn(embedding_fn(X_train), y_train)
 
