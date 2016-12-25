@@ -13,7 +13,7 @@ from lasagne.layers import helper
 
 from layers import SimpleARC
 from data_workers import OmniglotOS
-from main import train, test, deserialize
+from main import serialize, deserialize
 
 
 def create_embedder_fn(glimpses):
@@ -63,5 +63,5 @@ for glimpses in range(1, 9):
     print "\t\t loss:", val_loss
     print "\t\t accuracy:", val_acc
 
-np.save('X_test', X_test)
-np.save('y_test', y_test)
+    params = helper.get_all_param_values(l_y)
+    serialize(params, str(glimpses) + 'glimpses' + '.params')
